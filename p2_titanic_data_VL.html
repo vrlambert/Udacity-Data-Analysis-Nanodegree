@@ -12169,7 +12169,7 @@ div#notebook {
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>There are a total of 891 entries in this segment of the table. However, there are only 714 entries for age. From these statistics, it seems that several passenger entries are missing their age. Looking more closely, these are just NaN and can be easily dropped when it comes time to analyze data with respect to age.</p>
 <p>Here we can also see that only 38.3% of people survived the Titanic sinking. We can use that as a comparison to see which demographic groups had more or less than average survival.</p>
-<p>Next we will create a basic table for use in analyzing survival rate depending on age.</p>
+<p>Next we will create a basic table for use in analyzing survival rate depending on age. We will assign each passenger an age range using pandas 'cut' function, and use those age ranges for further analysis.</p>
 
 </div>
 </div>
@@ -14487,7 +14487,8 @@ height=283
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>In this analysis of the titanic survival data, I investigated the different age groups, genders, and economic classes of passenger about the titanic. The most likely age groups to survive are women and children, perhaps a result of the male and adult passengers prioritizing their rescue. Passenger class also had a significant impact on the survival rate, with higher class passengers being more likely to live. It is possible that the actual location of the cabins affected who could make it off the ship.</p>
+<p>In this analysis of the titanic survival data, I investigated the different age groups, genders, and economic classes of passenger about the titanic. There were several limitations to the analysis. Only looking at the data, it is impossible to know the exact reason for these trends. It is possible that by combining this data with analysis of the design of the titanic and historical records that explanations could be proposed, but that is outside the scope of this analysis. Also, the sample size for passengers over age 60 was small, so conclusions drawn from that data may be inaccurate.</p>
+<p>The most likely age groups to survive are women and children, perhaps a result of the male and adult passengers prioritizing their rescue. Passenger class also had a significant impact on the survival rate, with higher class passengers being more likely to live. It is possible that the actual location of the cabins affected who could make it off the ship.</p>
 
 </div>
 </div>
