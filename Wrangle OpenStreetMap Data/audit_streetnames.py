@@ -7,11 +7,9 @@ filename = 'rhode-island-latest.osm'
 
 street_type_re = re.compile(r'\b\S+\.?$', re.IGNORECASE)
 
-
 expected = ["Street", "Avenue", "Boulevard", "Drive", "Court", "Place",
             "Square", "Lane", "Road", "Trail", "Parkway", "Commons", "Highway",
             "Way", "Broadway", "Circle", "Pike"]
-
 
 def audit_street_type(street_types, street_name):
     m = street_type_re.search(street_name)
@@ -34,7 +32,7 @@ def audit(osmfile):
                     audit_street_type(street_types, tag.attrib['v'])
     return street_types
 
-def update_name(name):
+def update_street_name(name):
 
     mapping = {
                 "Ave":"Avenue",
