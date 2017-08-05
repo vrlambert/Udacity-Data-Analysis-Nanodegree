@@ -13,6 +13,27 @@ expected = ["Street", "Avenue", "Boulevard", "Drive", "Court", "Place",
             "Square", "Lane", "Road", "Trail", "Parkway", "Commons", "Highway",
             "Way", "Broadway", "Circle", "Pike"]
 
+# mapping used to correct street name abbreviations
+mapping = {
+            "Ave": "Avenue",
+            "Ave.": "Avenue",
+            "Blvd": "Boulevard",
+            "Ct": "Court",
+            "Ct.": "Court",
+            "Dr": "Drive",
+            "Dr.": "Drive",
+            "Hwy": "Highway",
+            "HIGHWAY": "Highway",
+            "Ln": "Lane",
+            "PIKE": "Pike",
+            "Rd": "Road",
+            "Rd.": "Road",
+            "Sq.": "Square",
+            "St": "Street",
+            "St.": "Street",
+            "Wy": "Way"
+}
+
 def audit_street_type(street_types, street_name):
     """
     Takes in a dictionary of street types and a street name. Checks for an
@@ -55,32 +76,10 @@ def audit(osmfile):
                     audit_street_type(street_types, tag.attrib['v'])
     return street_types
 
-
-def update_street_name(name):
+def update_street_name(name, mapping):
     """
     Takes in an abnormal street name and returns a corrected one
     """
-
-    # mapping used to correct street name abbreviations
-    mapping = {
-                "Ave": "Avenue",
-                "Ave.": "Avenue",
-                "Blvd": "Boulevard",
-                "Ct": "Court",
-                "Ct.": "Court",
-                "Dr": "Drive",
-                "Dr.": "Drive",
-                "Hwy": "Highway",
-                "HIGHWAY": "Highway",
-                "Ln": "Lane",
-                "PIKE": "Pike",
-                "Rd": "Road",
-                "Rd.": "Road",
-                "Sq.": "Square",
-                "St": "Street",
-                "St.": "Street",
-                "Wy": "Way"
-    }
 
     # Extract the street type and correct if possible
     street_type = re.search(street_type_re, name).group()
@@ -88,6 +87,7 @@ def update_street_name(name):
         name = name.replace(street_type, mapping[street_type], 1)
 
     return name
+
 
 
 def test():

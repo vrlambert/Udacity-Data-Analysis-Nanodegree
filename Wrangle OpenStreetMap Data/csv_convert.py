@@ -12,7 +12,7 @@ import schema
 import audit_streetnames
 import audit_postcodes
 
-OSM_PATH = "small_sample.osm"
+OSM_PATH = "rhode-island-latest.osm"
 
 NODES_PATH = "nodes.csv"
 NODE_TAGS_PATH = "nodes_tags.csv"
@@ -26,11 +26,13 @@ PROBLEMCHARS = re.compile(r'[=\+/&<>;\'"\?%#$@\,\. \t\r\n]')
 SCHEMA = schema.schema
 
 # Make sure the fields order in the csvs matches the column order in the sql table schema
-NODE_FIELDS = ['id', 'lat', 'lon', 'user', 'uid', 'version', 'changeset', 'timestamp']
+NODE_FIELDS = ['id', 'lat', 'lon', 'user',
+               'uid', 'version', 'changeset', 'timestamp']
 NODE_TAGS_FIELDS = ['id', 'key', 'value', 'type']
 WAY_FIELDS = ['id', 'user', 'uid', 'version', 'changeset', 'timestamp']
 WAY_TAGS_FIELDS = ['id', 'key', 'value', 'type']
 WAY_NODES_FIELDS = ['id', 'node_id', 'position']
+
 
 def get_attribs(fields, element):
     out_dict = {}
@@ -38,9 +40,11 @@ def get_attribs(fields, element):
         out_dict[field] = element.get(field)
     return out_dict
 
+
 def get_tags(element):
     tags = []
     parent_id = element.get('id')
+    mapping = audit_streetnames.mapping
     for child in element.iter('tag'):
 
         key = child.get('k')
@@ -48,12 +52,12 @@ def get_tags(element):
             print 'skipped ' + key
             continue
 
-        child_dict = {'id':parent_id}
+        child_dict = {'id': parent_id}
 
         # Update the street name if possible to remove abbreviations
         if audit_streetnames.is_street_name(child):
             v = child.get('v')
-            street = audit_streetnames.update_street_name(v)
+            street = audit_streetnames.update_street_name(v, mapping)
             child_dict['value'] = street
         # Update the post code if possible
         elif audit_postcodes.is_postcode(child):
@@ -67,7 +71,7 @@ def get_tags(element):
         colon_loc = key.find(':')
         if colon_loc != -1:
             child_dict['type'] = key[:colon_loc]
-            child_dict['key'] = key[colon_loc+1:]
+            child_dict['key'] = key[colon_loc + 1:]
         else:
             child_dict['type'] = 'regular'
             child_dict['key'] = key
@@ -75,15 +79,17 @@ def get_tags(element):
         tags.append(child_dict)
     return tags
 
+
 def get_way_nodes(element):
     way_nodes = []
     parent_id = element.get('id')
     for position, child in enumerate(element.iter('nd')):
-        child_dict = {'id':parent_id}
+        child_dict = {'id': parent_id}
         child_dict['node_id'] = child.get('ref')
         child_dict['position'] = position
         way_nodes.append(child_dict)
     return way_nodes
+
 
 def shape_element(element, node_attr_fields=NODE_FIELDS, way_attr_fields=WAY_FIELDS,
                   problem_chars=PROBLEMCHARS, default_tag_type='regular'):
@@ -144,10 +150,10 @@ def process_map(file_in, validate):
     """Iteratively process each XML element and write to csv(s)"""
 
     with codecs.open(NODES_PATH, 'w') as nodes_file, \
-         codecs.open(NODE_TAGS_PATH, 'w') as nodes_tags_file, \
-         codecs.open(WAYS_PATH, 'w') as ways_file, \
-         codecs.open(WAY_NODES_PATH, 'w') as way_nodes_file, \
-         codecs.open(WAY_TAGS_PATH, 'w') as way_tags_file:
+            codecs.open(NODE_TAGS_PATH, 'w') as nodes_tags_file, \
+            codecs.open(WAYS_PATH, 'w') as ways_file, \
+            codecs.open(WAY_NODES_PATH, 'w') as way_nodes_file, \
+            codecs.open(WAY_TAGS_PATH, 'w') as way_tags_file:
 
         nodes_writer = UnicodeDictWriter(nodes_file, NODE_FIELDS)
         node_tags_writer = UnicodeDictWriter(nodes_tags_file, NODE_TAGS_FIELDS)
@@ -181,4 +187,4 @@ def process_map(file_in, validate):
 if __name__ == '__main__':
     # Note: Validation is ~ 10X slower. For the project consider using a small
     # sample of the map when validating.
-    process_map(OSM_PATH, validate=True)
+    process_map(OSM_PATH, validate=False)
