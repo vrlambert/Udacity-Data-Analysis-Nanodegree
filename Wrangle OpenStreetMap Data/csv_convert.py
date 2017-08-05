@@ -8,12 +8,17 @@ import re
 import xml.etree.cElementTree as ET
 import cerberus
 
+# The schema file is used to double check our exported csv
 import schema
+
+# Import the audit scripts with useful update functions
 import audit_streetnames
 import audit_postcodes
 
+# The path to the OSM file to be analyzed
 OSM_PATH = "rhode-island-latest.osm"
 
+# The filenames for the output csvs
 NODES_PATH = "nodes.csv"
 NODE_TAGS_PATH = "nodes_tags.csv"
 WAYS_PATH = "ways.csv"
@@ -35,6 +40,10 @@ WAY_NODES_FIELDS = ['id', 'node_id', 'position']
 
 
 def get_attribs(fields, element):
+    """
+    Given an element and fields to fetch from that element, returns a dictionary
+    of the field and the fields attributes
+    """
     out_dict = {}
     for field in fields:
         out_dict[field] = element.get(field)
@@ -42,16 +51,27 @@ def get_attribs(fields, element):
 
 
 def get_tags(element):
+    """
+    Get tags function takes in an element and returns a list of dictionaries,
+    where each dictionary is
+    """
     tags = []
-    parent_id = element.get('id')
+    parent_id = element.get('id') # extract the id of the parent tag
+
+    # Extract the street name mapping for fixing abbreviations
     mapping = audit_streetnames.mapping
+
+    # Iterate through all of the tag elements in the parent element
     for child in element.iter('tag'):
 
+        # Extract the key and check it for problems
         key = child.get('k')
         if re.search(PROBLEMCHARS, key):
+            # If there are problems, just skip the entire child element
             print 'skipped ' + key
             continue
 
+        # Initialize a child dictionary with the already extracted parent id
         child_dict = {'id': parent_id}
 
         # Update the street name if possible to remove abbreviations
@@ -59,35 +79,57 @@ def get_tags(element):
             v = child.get('v')
             street = audit_streetnames.update_street_name(v, mapping)
             child_dict['value'] = street
+
         # Update the post code if possible
         elif audit_postcodes.is_postcode(child):
             v = child.get('v')
             postcode = audit_postcodes.update_postcodes(v)
             child_dict['value'] = postcode
-        # No cleaning on these data types
+
+        # No cleaning necessary on other data types
         else:
             child_dict['value'] = child.get('v')
 
+        # check if there is a colon in the key
         colon_loc = key.find(':')
+
+        # if there is a colon, split the string
         if colon_loc != -1:
+            # the part before the colon is the type
             child_dict['type'] = key[:colon_loc]
+            # the part after the colon is the key
             child_dict['key'] = key[colon_loc + 1:]
+        # if there is no colon
         else:
+            # the type is regular
             child_dict['type'] = 'regular'
+            # the key is the entire key
             child_dict['key'] = key
 
+        # add the dictionary to the tags list
         tags.append(child_dict)
+
     return tags
 
 
 def get_way_nodes(element):
+    """
+    Given a way element, returns a list of dictionaries containing the
+    the way id, node id, and position of each node element from the way.
+    """
     way_nodes = []
-    parent_id = element.get('id')
+    parent_id = element.get('id') # extract the parent id
+
+    # iterate through each node element (nd) in the way
     for position, child in enumerate(element.iter('nd')):
+        # Extract the proper elements from the element
         child_dict = {'id': parent_id}
         child_dict['node_id'] = child.get('ref')
         child_dict['position'] = position
+
+        # append it to the way node list
         way_nodes.append(child_dict)
+
     return way_nodes
 
 
@@ -105,7 +147,9 @@ def shape_element(element, node_attr_fields=NODE_FIELDS, way_attr_fields=WAY_FIE
         way_nodes = get_way_nodes(element)
         return {'way': way_attribs, 'way_nodes': way_nodes, 'way_tags': tags}
 
-
+# Note that the code below is used for importing but was provided
+# by the Udacity case study.
+# I added comments as an exersise to make sure I understood the code
 # ================================================== #
 #               Helper Functions                     #
 # ================================================== #
@@ -134,11 +178,13 @@ class UnicodeDictWriter(csv.DictWriter, object):
     """Extend csv.DictWriter to handle Unicode input"""
 
     def writerow(self, row):
+        # encodes the unicode if it is given
         super(UnicodeDictWriter, self).writerow({
             k: (v.encode('utf-8') if isinstance(v, unicode) else v) for k, v in row.iteritems()
         })
 
     def writerows(self, rows):
+        # Write each row if given a list of rows
         for row in rows:
             self.writerow(row)
 
@@ -149,32 +195,40 @@ class UnicodeDictWriter(csv.DictWriter, object):
 def process_map(file_in, validate):
     """Iteratively process each XML element and write to csv(s)"""
 
+    # open each file with a codes to help with unicode writing
     with codecs.open(NODES_PATH, 'w') as nodes_file, \
             codecs.open(NODE_TAGS_PATH, 'w') as nodes_tags_file, \
             codecs.open(WAYS_PATH, 'w') as ways_file, \
             codecs.open(WAY_NODES_PATH, 'w') as way_nodes_file, \
             codecs.open(WAY_TAGS_PATH, 'w') as way_tags_file:
 
+        # initialize the UnicodeDictWriter for each file
         nodes_writer = UnicodeDictWriter(nodes_file, NODE_FIELDS)
         node_tags_writer = UnicodeDictWriter(nodes_tags_file, NODE_TAGS_FIELDS)
         ways_writer = UnicodeDictWriter(ways_file, WAY_FIELDS)
         way_nodes_writer = UnicodeDictWriter(way_nodes_file, WAY_NODES_FIELDS)
         way_tags_writer = UnicodeDictWriter(way_tags_file, WAY_TAGS_FIELDS)
 
+        # write all the headers
         nodes_writer.writeheader()
         node_tags_writer.writeheader()
         ways_writer.writeheader()
         way_nodes_writer.writeheader()
         way_tags_writer.writeheader()
 
+        # initialize a validator
         validator = cerberus.Validator()
 
+        # Iterate through the nodes and ways in the file
         for element in get_element(file_in, tags=('node', 'way')):
+            # shape the element according to our defined schema
             el = shape_element(element)
             if el:
+                # validate using cerberus if validate is true
                 if validate is True:
                     validate_element(el, validator)
 
+                # Write the extracted fields to the appropriate file
                 if element.tag == 'node':
                     nodes_writer.writerow(el['node'])
                     node_tags_writer.writerows(el['node_tags'])
