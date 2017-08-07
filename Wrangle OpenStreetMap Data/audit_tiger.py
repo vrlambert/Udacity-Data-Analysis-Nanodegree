@@ -61,11 +61,20 @@ def update_tiger(parent_id, tiger_name, tiger_type):
     a dictionary with the appropriate name dictionary. Should only be called
     when the tiger name has not yet been compiled.
     """
-    child_dict = {'id':parent_id
-                  'type':'regular'
+
+    # initialize a child dict with the appropriate type, key, and id
+    child_dict = {'id':parent_id,
+                  'type':'regular',
                   'key':'name'}
-    street = tiger_name + tiger_type
-    street_final = audit_streetnames.update_street_name(street)
+
+    # combine the tiger parts into a full street name
+    street = tiger_name + ' ' + tiger_type
+
+    # use the street audit function to fix any abbreviation issues
+    street_final = audit_streetnames.update_street_name(street,
+                                                    audit_streetnames.mapping)
+
+    # print 'Updated', tiger_name, tiger_type,' => ', street_final
     child_dict['value'] = street_final
     return child_dict
 
