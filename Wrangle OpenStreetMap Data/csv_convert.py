@@ -14,6 +14,7 @@ import schema
 # Import the audit scripts with useful update functions
 import audit_streetnames
 import audit_postcodes
+import audit_tiger
 
 # The path to the OSM file to be analyzed
 OSM_PATH = "rhode-island-latest.osm"
@@ -61,6 +62,10 @@ def get_tags(element):
     # Extract the street name mapping for fixing abbreviations
     mapping = audit_streetnames.mapping
 
+    # Used for checking if the tiger name needs to be converted
+    has_name = False
+    has_tiger = False
+
     # Iterate through all of the tag elements in the parent element
     for child in element.iter('tag'):
 
@@ -74,21 +79,28 @@ def get_tags(element):
         # Initialize a child dictionary with the already extracted parent id
         child_dict = {'id': parent_id}
 
+        value = child.get('v')
         # Update the street name if possible to remove abbreviations
         if audit_streetnames.is_street_name(child):
-            v = child.get('v')
-            street = audit_streetnames.update_street_name(v, mapping)
+            street = audit_streetnames.update_street_name(value, mapping)
             child_dict['value'] = street
-
         # Update the post code if possible
         elif audit_postcodes.is_postcode(child):
-            v = child.get('v')
-            postcode = audit_postcodes.update_postcodes(v)
+            postcode = audit_postcodes.update_postcodes(value)
             child_dict['value'] = postcode
-
+        # Check if it has a name, used for tiger checking
+        elif audit_tiger.is_name(child):
+            has_name = True
+        # Check if it has a tiger street type
+        elif audit_tiger.is_tiger_type(child):
+            tiger_type = value
+            has_tiger = True
+        # Record the tiger name
+        elif audit_tiger.is_tiger_name(child):
+            tiger_name = value
         # No cleaning necessary on other data types
         else:
-            child_dict['value'] = child.get('v')
+            child_dict['value'] = value
 
         # check if there is a colon in the key
         colon_loc = key.find(':')
@@ -108,6 +120,10 @@ def get_tags(element):
 
         # add the dictionary to the tags list
         tags.append(child_dict)
+
+    # Check if the tiger name needs to be fixed
+    if has_tiger is True and has_name is False:
+        tags.append(audit_tiger.update_tiger(parent_id, tiger_name, tiger_type))
 
     return tags
 
