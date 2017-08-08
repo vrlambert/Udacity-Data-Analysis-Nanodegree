@@ -1,1 +1,3 @@
 http://download.geofabrik.de/north-america/us/rhode-island.html
+http://datascience.ibm.com/blog/markdown-for-jupyter-notebooks-cheatsheet/
+https://stackoverflow.com/questions/6712127/select-countdistinct-name-from-several-tables
