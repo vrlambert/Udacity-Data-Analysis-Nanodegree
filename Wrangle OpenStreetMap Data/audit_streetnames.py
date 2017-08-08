@@ -3,7 +3,7 @@ import pprint
 import re
 from collections import defaultdict
 
-filename = 'rhode-island-latest.osm'
+filename = 'small_sample.osm'
 
 # regular expression that returns the final word or abbreviation of a string
 street_type_re = re.compile(r'\b\S+\.?$', re.IGNORECASE)

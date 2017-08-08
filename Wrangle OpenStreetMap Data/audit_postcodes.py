@@ -2,7 +2,7 @@ import xml.etree.cElementTree as ET
 import pprint
 from collections import defaultdict
 
-filename = 'rhode-island-latest.osm'
+filename = 'small_sample.osm'
 
 def is_postcode(elem):
     """

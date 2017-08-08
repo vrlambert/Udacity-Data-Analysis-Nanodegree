@@ -17,7 +17,7 @@ import audit_postcodes
 import audit_tiger
 
 # The path to the OSM file to be analyzed
-OSM_PATH = "rhode-island-latest.osm"
+OSM_PATH = "small_sample.osm"
 
 # The filenames for the output csvs
 NODES_PATH = "nodes.csv"

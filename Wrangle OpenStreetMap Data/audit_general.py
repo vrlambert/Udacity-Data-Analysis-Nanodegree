@@ -3,7 +3,7 @@ import pprint
 import re
 from collections import defaultdict
 
-filename = "rhode-island-latest.osm"
+filename = "small_sample.osm"
 lower = re.compile(r'^([a-z]|_)*$')
 lower_colon = re.compile(r'^([a-z]|_)*:([a-z]|_)*$')
 problemchars = re.compile(r'[=\+/&<>;\'"\?%#$@\,\. \t\r\n]')
