@@ -1,0 +1,5 @@
+This text file is a link to the chosen region.
+I used http://download.geofabrik.de/north-america/us/rhode-island.html
+
+I grew up in RI, and the file was about the size of an Urban area,
+it seemed like a fun choice!
