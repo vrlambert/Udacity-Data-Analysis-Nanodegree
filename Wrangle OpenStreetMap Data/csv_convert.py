@@ -87,6 +87,9 @@ def get_tags(element):
         # Update the post code if possible
         elif audit_postcodes.is_postcode(child):
             postcode = audit_postcodes.update_postcodes(value)
+            # Skip this entry if there is a difficult to fix postcode
+            if postcode is None:
+                continue
             child_dict['value'] = postcode
         # Check if it has a name, used for tiger checking
         elif audit_tiger.is_name(child):
