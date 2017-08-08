@@ -94,6 +94,7 @@ def get_tags(element):
         # Check if it has a name, used for tiger checking
         elif audit_tiger.is_name(child):
             has_name = True
+            child_dict['value'] = value
         # Check if it has a tiger street type
         elif audit_tiger.is_tiger_type(child):
             tiger_type = value
