@@ -1,4 +1,16 @@
 .ipynb_checkpoints/
 .DS_store
+
 Wrangle\ OpenStreetMap\ Data/rhode-island-latest.osm
 Wrangle\ OpenStreetMap\ Data/sample.osm
+Wrangle\ OpenStreetMap\ Data/int_sample.osm
+Wrangle\ OpenStreetMap\ Data/schema.pyc
+Wrangle\ OpenStreetMap\ Data/nodes.csv
+Wrangle\ OpenStreetMap\ Data/nodes_tags.csv
+Wrangle\ OpenStreetMap\ Data/ways.csv
+Wrangle\ OpenStreetMap\ Data/ways_tags.csv
+Wrangle\ OpenStreetMap\ Data/ways_nodes.csv
+Wrangle\ OpenStreetMap\ Data/audit_postcodes.pyc
+Wrangle\ OpenStreetMap\ Data/audit_streetnames.pyc
+Wrangle\ OpenStreetMap\ Data/audit_tiger.pyc
+Wrangle\ OpenStreetMap\ Data/ri_osm.db
