@@ -1,4 +1,11 @@
-File overviews
+# Wrangle OpenStreetMap Data
+
+This project was completed as part of the Udacity Data Analyst Nanodegree. This project includes a number of files for use in analyzing OpenStreetMap data from the state of Rhode Island.
+
+## Instructions
+First, clone the repo. Run the python file csv_convert.py to produce five separate csv files, nodes, nodes_tags, ways, ways_tags, and ways_nodes. These csv files can be imported to a SQL table according to the schema provided in data_wrangling_schema.sql.
+
+## File overviews
 
 Audit Files:
 
