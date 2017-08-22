@@ -1,14 +1,5 @@
-TITLE by YOUR_NAME_HERE
+Explore Red Wine Data by Victor Lambert
 ========================================================
-
-> **Tip**: You will see quoted sections like this throughout the template to
-help you construct your report. Make sure that you remove these notes before
-you finish and submit your project!
-
-> **Tip**: One of the requirements of this project is that your code follows
-good formatting techniques, including limiting your lines to 80 characters or
-less. If you're using RStudio, go into Preferences \> Code \> Display to set up
-a margin line to help you keep track of this guideline!
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
 # Load all of the packages that you end up using in your analysis in this code
@@ -28,7 +19,9 @@ library(ggplot2)
 
 ```{r echo=FALSE, Load_the_Data}
 # Load the Data
-
+wd = read.csv("wineQualityReds.csv")
+# Update the X column to a factor
+wd$X <- factor(wd$X)
 ```
 
 > **Tip**: Before you create any plots, it is a good idea to provide a short
