@@ -15,6 +15,7 @@ Explore Red Wine Data by Victor Lambert
 # want it to. This will clean up the flow of your report.
 
 library(ggplot2)
+library(gridExtra)
 ```
 
 ```{r echo=FALSE, Load_the_Data}
@@ -28,6 +29,29 @@ wd$X <- factor(wd$X)
 introduction into the dataset that you are planning to explore. Replace this
 quoted text with that general information!
 
+This dataset contains 1599 records of red wine chemical composition and quality
+rating. 
+
+Input variables (based on physicochemical tests):
+   1 - fixed acidity (tartaric acid - g / dm^3)
+   2 - volatile acidity (acetic acid - g / dm^3)
+   3 - citric acid (g / dm^3)
+   4 - residual sugar (g / dm^3)
+   5 - chlorides (sodium chloride - g / dm^3)
+   6 - free sulfur dioxide (mg / dm^3)
+   7 - total sulfur dioxide (mg / dm^3)
+   8 - density (g / cm^3)
+   9 - pH
+   10 - sulphates (potassium sulphate - g / dm3)
+   11 - alcohol (% by volume)
+   Output variable (based on sensory data): 
+   12 - quality (score between 0 and 10)
+
+Questions we will investigate during this exploration:
+- What are the variables that impact wine quality?
+- Can we use the data to predict wine quality?
+- Are there interesting correlations between other measurments?
+
 # Univariate Plots Section
 
 > **Tip**: In this section, you should perform some preliminary exploration of
@@ -37,15 +61,118 @@ forget to add a comment after each plot or closely-related group of plots!
 There should be multiple code chunks and text sections; the first one below is
 just to help you get started.
 
-```{r echo=FALSE, Univariate_Plots}
+## Quality Distribution
 
+```{r echo=FALSE, Univariate_Plots}
+print('Quality Summary')
+summary(wd$quality)
 ```
 
-> **Tip**: Make sure that you leave a blank line between the start / end of
-each code block and the end / start of your Markdown text so that it is
-formatted nicely in the knitted text. Note as well that text on consecutive
-lines is treated as a single space. Make sure you have a blank line between
-your paragraphs so that they too are formatted for easy readability.
+It is clear from the max and min that there aren't any wines above 8 or below 3.
+Also, since the first and third quantile are 5 and 6 respectively we expect the
+majority of the values to fall between 5 and 6. Since it is very discrete a 
+table of all the values could be useful.
+
+```{r echo=FALSE, Univariate_Plots}
+print('Quality Table')
+table(wd$quality)
+```
+
+As we expected, most of the values are either 5 or 6 for quality. There are 
+quite a few 7 wines also which might be helpful for identifying trends. We will
+look at the distribution in a histogram next.
+
+```{r echo=FALSE, Univariate_Plots}
+summary(wd$quality)
+ggplot(aes(quality), data = wd) + 
+  geom_histogram(binwidth = 1) +
+  scale_x_continuous(breaks = seq(2,10, 1))
+table(wd$quality)
+```
+
+Initially, looking at the distribution of quality we see something close to a 
+normal distribution. The vast majority of the wines are in the middle of the 
+spectrum, and there are not many wines at the extremes. We will try to find any
+variables which can help us predict this. 
+
+We will go through the available variables, paying particular attention to ones
+which might be of particular interest.
+
+## Acidity Metrics
+
+```{r echo=FALSE, Univariate_Plots}
+p <- ggplot(data = wd)
+p1 <- p + geom_histogram(aes(fixed.acidity))
+p2 <- p + geom_histogram(aes(volatile.acidity))
+p3 <- p + geom_histogram(aes(citric.acid))
+grid.arrange(p1,p2,p3, ncol = 1)
+```
+
+Looking at the three different types of acid, the fixed and volatile acidity are
+clearly close to a normal distribution. The citric acid, however doesn't look
+like a normal distribution. We will look at the log of the citric acid content.
+
+```{r echo=FALSE, Univariate_Plots}
+ggplot(aes(citric.acid), data = wd) +
+  geom_histogram() + 
+  scale_x_log10()
+```
+
+The citric acid content does seem more normal when plotted as a log, but still
+not perfect since it is skewed by some low values. For the last acidity related
+metric we will look at pH.
+
+```{r}
+ggplot(aes(pH), data = wd) +
+  geom_histogram()
+```
+
+The pH follows a very normal distribution with almost all of the values between
+three and four. This likely correlates well with the acidity variables, we will
+look into this more in the bi and multi variate analysis section.
+
+## Inorganic Molecule Analysis
+
+```{r}
+ggplot(aes(chlorides), data = wd) +
+  geom_histogram()
+```
+
+```{r}
+freeso2 <- p + geom_histogram(aes(free.sulfur.dioxide))
+totalso2 <- p + geom_histogram(aes(total.sulfur.dioxide))
+
+grid.arrange(freeso2, totalso2)
+```
+
+
+```{r}
+ggplot(aes(sulphates), data = wd) + 
+  geom_histogram()
+```
+
+
+## Bulk Property Analysis
+```{r echo=FALSE, Univariate_Plots}
+p5 <- p + geom_histogram(aes(residual.sugar))
+p5
+```
+
+```{r echo=FALSE, Univariate_Plots}
+p5 + scale_x_continuous(limits = c(0,4))
+summary(wd$residual.sugar)
+```
+
+```{r}
+ggplot(aes(alcohol), data = wd) +
+  geom_histogram()
+```
+
+```{r}
+ggplot(aes(density), data = wd) +
+  geom_histogram()
+```
+
 
 # Univariate Analysis
 
