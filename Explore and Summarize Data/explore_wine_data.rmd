@@ -18,19 +18,17 @@ library(ggplot2)
 library(gridExtra)
 ```
 
-```{r echo=FALSE, Load_the_Data}
+```{r echo=FALSE, message=FALSE, warning=FALSE, Load_the_Data}
 # Load the Data
 wd = read.csv("wineQualityReds.csv")
 # Update the X column to a factor
 wd$X <- factor(wd$X)
 ```
 
-> **Tip**: Before you create any plots, it is a good idea to provide a short
-introduction into the dataset that you are planning to explore. Replace this
-quoted text with that general information!
-
 This dataset contains 1599 records of red wine chemical composition and quality
-rating. 
+rating. The wine is the red Vinho Verde out of northern Portugal. There are 12
+variables in the dataset, 11 chemical properties of the wine and quality as
+reported by three different critics.
 
 Input variables (based on physicochemical tests):
    1 - fixed acidity (tartaric acid - g / dm^3)
@@ -54,16 +52,11 @@ Questions we will investigate during this exploration:
 
 # Univariate Plots Section
 
-> **Tip**: In this section, you should perform some preliminary exploration of
-your dataset. Run some summaries of the data and create univariate plots to
-understand the structure of the individual variables in your dataset. Don't
-forget to add a comment after each plot or closely-related group of plots!
-There should be multiple code chunks and text sections; the first one below is
-just to help you get started.
+In this section we look into the distribution of single variables.
 
-## Quality Distribution
+### Quality Distribution
 
-```{r echo=FALSE, Univariate_Plots}
+```{r echo=FALSE, message=FALSE, warning=FALSE, Quality_Summary}
 print('Quality Summary')
 summary(wd$quality)
 ```
@@ -73,21 +66,33 @@ Also, since the first and third quantile are 5 and 6 respectively we expect the
 majority of the values to fall between 5 and 6. Since it is very discrete a 
 table of all the values could be useful.
 
-```{r echo=FALSE, Univariate_Plots}
+```{r echo=FALSE, message=FALSE, warning=FALSE, Quality_Table}
 print('Quality Table')
 table(wd$quality)
+```
+
+Here it is clear that we should combine some bins in order to have a better
+significance for those areas. We create four bins for wine quality:
+- poor wines 3 and 4
+- low-mediocre wines 5
+- high-mediocre wines 6
+- good wines 7 and 8
+These bins can be used to split other variables and see if there are patterns.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Quality_Bins}
+wd$quality.bin  <- cut(wd$quality, c(2, 4, 5, 6, 8))
+print("Quality Bins Table")
+table(wd$quality.bin)
 ```
 
 As we expected, most of the values are either 5 or 6 for quality. There are 
 quite a few 7 wines also which might be helpful for identifying trends. We will
 look at the distribution in a histogram next.
 
-```{r echo=FALSE, Univariate_Plots}
-summary(wd$quality)
+```{r echo=FALSE, message=FALSE, warning=FALSE, Quality_hist}
 ggplot(aes(quality), data = wd) + 
   geom_histogram(binwidth = 1) +
   scale_x_continuous(breaks = seq(2,10, 1))
-table(wd$quality)
 ```
 
 Initially, looking at the distribution of quality we see something close to a 
@@ -100,7 +105,7 @@ which might be of particular interest.
 
 ## Acidity Metrics
 
-```{r echo=FALSE, Univariate_Plots}
+```{r echo=FALSE, message=FALSE, warning=FALSE, Acidity_Plot}
 p <- ggplot(data = wd)
 p1 <- p + geom_histogram(aes(fixed.acidity))
 p2 <- p + geom_histogram(aes(volatile.acidity))
@@ -112,9 +117,9 @@ Looking at the three different types of acid, the fixed and volatile acidity are
 clearly close to a normal distribution. The citric acid, however doesn't look
 like a normal distribution. We will look at the log of the citric acid content.
 
-```{r echo=FALSE, Univariate_Plots}
+```{r echo=FALSE, message=FALSE, warning=FALSE, Citric_acid_log}
 ggplot(aes(citric.acid), data = wd) +
-  geom_histogram() + 
+  geom_histogram(bins = 50) + 
   scale_x_log10()
 ```
 
@@ -122,77 +127,191 @@ The citric acid content does seem more normal when plotted as a log, but still
 not perfect since it is skewed by some low values. For the last acidity related
 metric we will look at pH.
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE, pH_Hist}
 ggplot(aes(pH), data = wd) +
   geom_histogram()
+
+summary(wd$pH)
 ```
 
 The pH follows a very normal distribution with almost all of the values between
 three and four. This likely correlates well with the acidity variables, we will
 look into this more in the bi and multi variate analysis section.
 
-## Inorganic Molecule Analysis
+### Inorganic Molecule Analysis
 
-```{r}
+Next we move on to analyses of the inorganic compounds reported in the dataset.
+First, we investigate the chloride content. 
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, Chloride_plot}
 ggplot(aes(chlorides), data = wd) +
   geom_histogram()
+
+summary(wd$chlorides)
 ```
 
-```{r}
+We see that the majority of chloride concentrations lie between zero and 0.2, 
+but there are some values as high as 0.6. The median value is about 0.8 mg/L. We
+should zoom in on the are with most of the values to get a better idea of the 
+distribution. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, chloride_zoom}
+ggplot(aes(chlorides), data = wd) +
+  geom_histogram() +
+  scale_x_continuous(limits = c(0, 0.15))
+```
+
+The distribution of chlorides looks much more normal in that region. It seems to
+be a normal distribution with a long tail. We will have to check if the long 
+tail values influence the quality in the two variable analysis later. Now, the 
+sulfur dioxide, both free and total. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, sulfur_plot}
 freeso2 <- p + geom_histogram(aes(free.sulfur.dioxide))
 totalso2 <- p + geom_histogram(aes(total.sulfur.dioxide))
 
 grid.arrange(freeso2, totalso2)
 ```
 
+The data description states that free SO2 is the type which would impact the 
+flavor of the wine, particularly if it is too high. That threshold will have to 
+be investigated later in the analysis. Another interesting thing to consider is 
+the proportion of free over total sulfur dioxide in each wine. Perhaps that
+value will be similar in all wines.
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE, sulfur_proportion}
+wd$proportion.sulfur.dioxide = wd$free.sulfur.dioxide / wd$total.sulfur.dioxide
+ggplot(data = wd) +
+  geom_histogram(aes(proportion.sulfur.dioxide))
+```
+
+It seems like the proportion varies widely, from .02 to 0.85, with most of the 
+values being between 0.25 and 0.4. Now we can print some summary statistics
+for sulfur dioxide.
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, SO2_stats}
+print("Free SO2")
+summary(wd$free.sulfur.dioxide)
+print("Total SO2")
+summary(wd$total.sulfur.dioxide)
+print("Proportion Free")
+summary(wd$proportion.sulfur.dioxide)
+```
+
+We can see that the distributions match nicely with our observations from above.
+Now we will look into the sulphate contents of the wines.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, sulphate_plot}
 ggplot(aes(sulphates), data = wd) + 
   geom_histogram()
 ```
 
+From this histogram it seems that the sulphates follow a similar long tail 
+distribution to many of the other salts contained in the wine. We will have to
+check later if the higher values have a larger impact on quality.
 
-## Bulk Property Analysis
-```{r echo=FALSE, Univariate_Plots}
+### Bulk Property Analysis
+
+Now, we will move on to the analysis of some bulk properties of the wine 
+including sugar content, alcohol content, and density. First, we look at the 
+distribution of residual sugar content. This is the amount of sugar remaining
+after the fermentation of the wine. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Sugar_Plot}
 p5 <- p + geom_histogram(aes(residual.sugar))
 p5
 ```
 
-```{r echo=FALSE, Univariate_Plots}
-p5 + scale_x_continuous(limits = c(0,4))
-summary(wd$residual.sugar)
+When looking at the sugar data, we see a simlar pattern to many other wines. 
+Most fall within a lower bell curve and there is a long tail of much sweeter
+wines. The sugar content of the final wine is usually set by the winemaker, so 
+it is possible that most people are targeting a dryer wine in that particular
+RS region. We can split the data across different quality bins to see if we can
+find a pattern.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, sugar_split}
+p5 + facet_wrap(~quality.bin, scales = 'free') +
+  scale_x_continuous(limits = c(0, 16))
 ```
 
-```{r}
+There is not apparent a trend with sugar content and quality in the different
+groups of wines. Next we look at the distribution of alcohol contents.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Alcohol_Plot}
 ggplot(aes(alcohol), data = wd) +
-  geom_histogram()
+  geom_histogram(bins = 60)
 ```
 
-```{r}
+Unlike the sugar content and many other variables, the alcohol content does not
+follow the long tail distribution. It seems that the alcohol distribution has a 
+many more values in the long tail. This could be a result of the differing 
+ripeness of grapes at harvest. If they are targeting a particular residual sugar
+value, the alcohol content will be primarily constrained by the initial sugar
+content of the grapes. We can split the alcohol content along different
+quality groupings as well.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Alcohol_Split}
+ggplot(aes(alcohol), data = wd) +
+  geom_histogram() +
+  facet_wrap(~quality.bin, scales = 'free') +
+  scale_x_continuous(limits = c(8, 15))
+```
+
+Split over the four quality bins, it is clear that higher alcohol seems to
+correlate with better quality. We will have to investigate this relationship
+further. The alcohol is not necessarily the cause of the improvement, it could
+be that riper grapes or some other variable improve quality and higher alcohol
+is a byproduct of those. The final variable for us to investigate is density.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Density_Plot}
 ggplot(aes(density), data = wd) +
   geom_histogram()
 ```
 
+The density follows a very normal distribution, it should be closely related 
+with alcohol and sugar content.
 
 # Univariate Analysis
 
-> **Tip**: Now that you've completed your univariate explorations, it's time to
-reflect on and summarize what you've found. Use the questions below to help you
-gather your observations and add your own if you have other thoughts!
+We are able to draw some useful information from looking at the single variable
+analysis. We can see that the alcohol content likely correlates with better 
+quality in the wine.
 
 ### What is the structure of your dataset?
 
+The data contains 12 variables, 11 of which are floating point numbers and one
+is an integer. It also contains an id, called 'X' which has been converted to 
+a factor to prevent numerical analysis. The data already is tidy and does not
+have missing values or many other issues.
+
 ### What is/are the main feature(s) of interest in your dataset?
 
-### What other features in the dataset do you think will help support your \
+The dataset consists of one important metric, the quality of the wine, and 11
+other chemical variables about the wine. The main feature of interest is how
+we can predict the quality of the wine from some combination of these other
+chemicals.
+
+### What other features in the dataset do you think will help support your 
 investigation into your feature(s) of interest?
 
+The dataset contains many interrelated variables, we will also look to see how
+these variables vary together to supplement the quality based analysis.
+
 ### Did you create any new variables from existing variables in the dataset?
+
+Yes, two new variables were created. The first, quality.bin groups the 3 and 4 
+values together, and the 7 and 8 values together. This is to increase the
+number of wines in the high quality and low quality bins for the purpose of 
+data splitting. The second created variable is the proportion of SO2 that is 
+free, which didn't prove to be particularly helpful yet.
 
 ### Of the features you investigated, were there any unusual distributions? \
 Did you perform any operations on the data to tidy, adjust, or change the form \
 of the data? If so, why did you do this?
 
+There were many variables which had long tail distributions, although that was
+the most unusual thing found so far. No further tidying or adjustment has been
+done on the data. Now, we will move on to analysis of two variables.
 
 # Bivariate Plots Section
 
