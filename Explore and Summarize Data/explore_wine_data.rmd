@@ -16,6 +16,7 @@ Explore Red Wine Data by Victor Lambert
 
 library(ggplot2)
 library(gridExtra)
+library(GGally)
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Load_the_Data}
@@ -315,30 +316,198 @@ done on the data. Now, we will move on to analysis of two variables.
 
 # Bivariate Plots Section
 
-> **Tip**: Based on what you saw in the univariate plots, what relationships
-between variables might be interesting to look at in this section? Don't limit
-yourself to relationships between a main output feature and one of the
-supporting variables. Try to look at relationships between supporting variables
-as well.
+First, we can take a look at a ggpairs plot to see if there are any unexpected
+relationships that we should investigate later. The plot shows correlations
+on the upper half, frequency polygons on the diagonal, and scatter plots on the 
+lower diagonal.
 
-```{r echo=FALSE, Bivariate_Plots}
-
+```{r echo=FALSE, message=FALSE, warning=FALSE, ggpairs_plot}
+ggpairs(wd, columns = seq(2, 13), lower = list(continuous = 'smooth')) +
+  theme_grey(base_size = 4)
 ```
 
-# Bivariate Analysis
+Looking at the ggpairs, we can see some expected relationships and some 
+unexpected ones. Several variables have correlations with quality, although none
+of the correlations are large. The biggest effect is alcohol with a correlation
+of 0.48. The other larger correlations are volatile acidity (-0.39), 
+sulphates (0.25) and citric acid (0.22). This makes sense from what we know 
+about these acids, citric acidhas a pleasant flavor but acetic (volatile) acid 
+does not.
 
-> **Tip**: As before, summarize what you found in your bivariate explorations
-here. Use the questions below to guide your discussion.
+As far as other variables go, we can see that the different acid variables and 
+pH are also correlated, although the volatile acididy correlation is the 
+opposite of what we would expect since lower pH is more acidic. It also seems 
+that acidict has a relationship with density which I did not predict in the
+univariate analysis.
+
+Let's take a closer look at how some of these things relate to quality, starting
+with alcohol. Note that when plotting with quality as the dependent variable
+adding jitter and some transparancy is very helpful to visualize the data.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, alcohol_scatter}
+ggplot(aes(x = alcohol, y = quality), data = wd) +
+  geom_jitter(alpha = 1/5) +
+  geom_smooth(color = 'black', method = 'lm')
+```
+
+Here we an see the relationship that was hinted at in the univariate analysis.
+Wines with higher alcohol definitely have a higher quality average. The effect
+is not strong, but there are not many better than average wines for us to draw
+conclusions from.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, alcohol_box}
+ggplot(aes(x = quality.bin, y = alcohol), data = wd) +
+  geom_boxplot(alpha = 1/5)
+```
+
+Taking a look at this from a different plot, we can see that the higher quality
+wines definitely have a higher value for alcohol. The box plot is nice because
+it shows us the median as well as some grouping statistics.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, citric_scatter}
+ggplot(aes(x = citric.acid, y = quality), data = wd) +
+  geom_jitter(alpha = 1/5) +
+  geom_smooth(method = 'lm', color = 'black')
+```
+
+Looking at the citric acid, we can see that the correlation is small. It seems
+that there are more high quality wines with higher citric acid, and more low
+quality wines with low citric acid.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, volatile_scatter}
+ggplot(aes(x = volatile.acidity, y = quality), data = wd) +
+  geom_jitter(alpha = 1/5) +
+  geom_smooth(color = 'black', method = 'lm')
+```
+
+For volatile acid, the relatinship is more clear. Having more volatile acid is
+detrimental to wine quality. Now let's take a look at the sulphates.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, sulphiate_scatter}
+ggplot(aes(x = sulphates, y = quality), data = wd) +
+  geom_jitter(alpha = 1/5) +
+  geom_smooth(color = 'black', method = 'lm')
+```
+
+I wasn't expecting the sulphates to have a positive relationship. Sulphates can
+have a preservative effect, so perhaps they are preserving some of the fresh 
+flavor of the wines. Let's take a look at the sulfur dioxide.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, volatile_scatter}
+p6 <- ggplot(aes(x = free.sulfur.dioxide, y = quality), data = wd) +
+  geom_jitter(alpha = 1/5) +
+  geom_smooth(color = 'black', method = 'lm')
+
+p7 <- ggplot(aes(x = total.sulfur.dioxide, y = quality), data = wd) +
+  geom_jitter(alpha = 1/5) +
+  geom_smooth(color = 'black', method = 'lm')
+
+grid.arrange(p6, p7, ncol = 2)
+```
+
+This result is somewhat unexpected. We do expect sulfur dioxide to impact 
+quality, since higher concentrations can give an off smell. However, the data
+documentation says that only free sulfur dioxide should impact the smell.
+However, it seems like total sulfur dioxide has a much bigger impact on the 
+quality rating of the wine. Let's move on toconfirm some relationships that we 
+don't expect to have an effect.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, sugar_scatter}
+ggplot(aes(x = residual.sugar, y = quality), data = wd) +
+  geom_jitter(alpha = 1/5) +
+  geom_smooth(color = 'black', method = 'lm')
+```
+
+As we expected from the univariate analysis, sugar content doesn't seem to have
+any impact at all on the quality of the wine. Now we can take a look at 
+relationships between some other variables.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, density_sugar}
+ggplot(aes(x = residual.sugar, y = density), data = wd) +
+  geom_jitter(alpha = 1/5) +
+  geom_smooth(color = 'black', method = 'lm')
+```
+
+We can see that the density has a positive correlation with sugar, as we would 
+expect. However, this doesn't explain all the variation.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, density_alcohol}
+ggplot(aes(x = alcohol, y = density), data = wd) +
+  geom_jitter(alpha = 1/5) +
+  geom_smooth(color = 'black', method = 'lm')
+```
+
+Taking a look at the effect that alcohol has on density, it's clear that the 
+lower density of ethanol is decreasing the density of lots of the wines. It's
+likely that alcohol and sugar explain much of the density variation for the 
+wines, we an look at them all together in the multivariate analysis.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, pH_fixed_scatter}
+p8 <- ggplot(aes(x = pH, y = fixed.acidity), data = wd) +
+  geom_jitter(alpha = 1/5) +
+  geom_smooth(color = 'black', method = 'lm')
+
+p9 <- ggplot(aes(x = pH, y = volatile.acidity), data = wd) +
+  geom_jitter(alpha = 1/5) +
+  geom_smooth(color = 'black', method = 'lm')
+
+grid.arrange(p8, p9, ncol = 2)
+```
+
+Taking a look at the acidity, we see that fixed acidity has a much higher effect
+on pH than volatile acidity. We actually see the opposite effect in volatile
+acidity, which is unexpected. Possibly the fixed acidity, which has a much 
+larger magnitude is affecting the pH more.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, volatile_fixed_scatter}
+ggplot(aes(x = fixed.acidity, y = volatile.acidity), data = wd) +
+  geom_jitter(alpha = 1/5) +
+  geom_smooth(color = 'black', method = 'lm')
+```
+
+Taking a look at fixed acidity vs volatile acidity, we do see that wines with
+more volatile acidity tend to fall lower on the fixed acidity scale. This
+probably explains a large portion of the unexpected pH trend.
+
+# Bivariate Analysis
 
 ### Talk about some of the relationships you observed in this part of the \
 investigation. How did the feature(s) of interest vary with other features in \
 the dataset?
 
+There are several factors which impact the quality rating of the wine. Higher
+alcohol content was once again shown to be correlated with a higher quality of
+the wine. Some other variables were also associated with better quality, 
+including citric acid and sulphate content. The sulphate content was surprising 
+to me, but could be a result of it acting as a preservative.
+
+We also saw that volatile acidity and total sulfur dioxide content had a 
+negative correlation with quality rating in wine. The effect of total sulfur
+dioxide was bigger than the effect of free sulfur dioxide, which was unexpected.
+
+Overall, alcohol is the strongest positive predictor of quality, however there
+are not any very strong correlations for the quality rating.
+
 ### Did you observe any interesting relationships between the other features \
 (not the main feature(s) of interest)?
 
+I also looked into the relationship between some bulk properties of the wine,
+particularly the density. It seems like the alcohol content is a large predictor
+of lower density, which follows according to the lower density of ethanol. As a 
+side note, as a chemical engineer I know that this relationship is not linear,
+though at these concentrations it shouldn't be a big deal. The sugar content 
+also has an impact on the density, though not as large as the alcohol content.
+
+pH and the contribution of fixed and volatile acidity were also examined. There
+was one surprising result of volatile acidity, but it seems to be explained
+by the higher magnitude of the fixed acidity.
+
 ### What was the strongest relationship you found?
 
+The strongest correlation I found is the relationship between acidity and pH 
+with a correlation of 0.68. Density and alcohol also have a very high 
+correlation. The strongest correlation for the primary feature of the data
+is the alcohol content, with a correlation of 0.48.
 
 # Multivariate Plots Section
 
