@@ -393,7 +393,7 @@ I wasn't expecting the sulphates to have a positive relationship. Sulphates can
 have a preservative effect, so perhaps they are preserving some of the fresh 
 flavor of the wines. Let's take a look at the sulfur dioxide.
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, volatile_scatter}
+```{r echo=FALSE, message=FALSE, warning=FALSE, sulfurdioxide_scatter}
 p6 <- ggplot(aes(x = free.sulfur.dioxide, y = quality), data = wd) +
   geom_jitter(alpha = 1/5) +
   geom_smooth(color = 'black', method = 'lm')
@@ -679,63 +679,116 @@ variation in density!
 investigation. Were there features that strengthened each other in terms of \
 looking at your feature(s) of interest?
 
+Most of the individual relationships related to the quality of the wine
+are fairly weak. Even when looking in to relationships of acidity, sugar,
+and many other variables paired with alcohol no significantly stronger 
+correlations are found.
+
+When combining different variables you can see regions of the graph for 
+different quality bins, however the effects do not seem to increase the 
+strength of the other.
+
 ### Were there any interesting or surprising interactions between features?
+
+One relationship that was particularly strong relative to the others is the
+relationship between density, alcohol, and fixed acid. This makes scientific 
+sense because ethanol is less dense than water, but some acids are more dense.
+Looking at them in a group of three, there is clear trend both with alcohol 
+decreasing the density but fixed acidity increasing the density.
 
 ------
 
 # Final Plots and Summary
 
-> **Tip**: You've done a lot of exploration and have built up an understanding
-of the structure of and relationships between the variables in your dataset.
-Here, you will select three plots from all of your previous exploration to
-present here as a summary of some of your most interesting findings. Make sure
-that you have refined your selected plots for good titling, axis labels (with
-units), and good aesthetic choices (e.g. color, transparency). After each plot,
-make sure you justify why you chose each plot by describing what it shows.
-
 ### Plot One
-```{r echo=FALSE, message=FALSE, warning=FALSE, Quality_hist}
+```{r echo=FALSE, message=FALSE, warning=FALSE, Plot_One}
 ggplot(aes(quality), data = wd) + 
   geom_histogram(binwidth = 1) +
-  scale_x_continuous(breaks = seq(2,10, 1))
+  scale_x_continuous(breaks = seq(2,10, 1)) +
+  labs(x = "Quality",
+       y = "Count",
+       title = "Quality Distribution")
 ```
 
 
 ### Description One
 
+The first very important plot, although it is simple, is the distribution of 
+quality score (1-10) in the dataset. We can see that there are very few wines 
+with quality scores of 3, 4, 7, and 8. This shows that the wines follow a 
+somewhat normal distribution in quality, however we have very little signal on 
+what makes an excellent or extremely poor wine. This is important because it
+limits the future analysis that is possible, there is significant noise on most
+factors and without many points in the high or low rating it is very difficult
+to find strong correlations.
 
 ### Plot Two
-```{r echo=FALSE, Plot_Two}
+```{r echo=FALSE, message=FALSE, warning=FALSE, Plot_Two}
 ggplot(aes(x = alcohol,
            y = quality,
            color = quality.bin),
        data = wd) +
-  geom_jitter()
+  geom_jitter(alpha = 0.5) +
+  labs(x = 'Alcohol [%]',
+       y = 'Quality',
+       color = 'Quality Bin',
+       title = 'Alcohol vs. Quality') 
 ```
 
 ### Description Two
 
+There is one relationship related to the quality of wine that was moderately
+strong, higher alcohol wines tend to get higher quality scores. Looking at
+this plot it is clear that higher scoring wines also have higher percentages of
+alcohol. Lower scoring wines tend to be between 9 and 12 percent, while high
+scoring wines reach as high as 14 percent. Although this is the strongest
+relationship in the dataset, it is only a moderate correlation with a pearson R
+of about 0.47.
 
 ### Plot Three
-```{r echo=FALSE, message=FALSE, warning=FALSE, Plot_3}
+```{r echo=FALSE, message=FALSE, warning=FALSE, Plot_Three}
 ggplot(aes(x = alcohol, 
            y = density, 
            color=fixed.acidity), 
        data = wd) +
   geom_jitter(alpha = 0.5) +
-  scale_color_gradient(low = 'white', high = 'black')
+  scale_color_gradient(low = 'white', high = 'black') +
+  labs(x = 'Alcohol [%]',
+     y = 'Density [g*cm^-3]',
+     color = 'Fixed Acidity [g / L]',
+     title = "Density vs. Alcohol and Acidity") 
 ```
 
 ### Description Three
+
+The last plot shows something not related to quality, but how concentrations of
+fixed acids and alcohol impact the density. These are some of the strongest
+relationships in the dataset, showing how increasing alcohol decreases the 
+density of the wine but increasing acidity increases the density. These
+correlations are clear from the scatter plot where the gradient color of the
+point corresponds to acidity.
 
 ------
 
 # Reflection
 
-> **Tip**: Here's the final step! Reflect on the exploration you performed and
-the insights you found. What were some of the struggles that you went through?
-What went well? What was surprising? Make sure you include an insight into
-future work that could be done with the dataset.
+As a wine lover and data analyst, I was really hoping to find some very 
+clear and interesting relationships in this dataset. However, the low number
+of high and low rated wines made it difficult to identify strong effects from
+a variety of factors. There are several things which do impact the wine quality,
+but only slightly. 
 
-> **Tip**: Don't forget to remove this, and the other **Tip** sections before
-saving your final work and knitting the final report!
+With this in mind, the dataset is not extremely useful from the perspective of
+a chemical engineer trying to find compounds to increase or tweaks to wine 
+contents (other than increase the alcohol). It seems like it could be more
+suited for creating a model that can try to predict the quality of wine from
+a few chemical inputs. However, the relationships are weak so the model would
+benefit from significanly more samples. Perhaps the white wine database, which
+has about 5000 samples, could be used to do a stronger analysis.
+
+There were several surprising things in this dataset, the first of which was the
+general lack of strong correlations. This made it difficult for me to direct
+my exploration and left me often just checking lots of variables and not finding
+a strong trend. However, the data was numeric for lots of variables which 
+allows for creation of many nice box and scatter plots. Overall, the exploration
+went well but could easily be improved in the future.
