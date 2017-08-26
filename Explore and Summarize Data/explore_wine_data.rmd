@@ -467,7 +467,21 @@ ggplot(aes(x = fixed.acidity, y = volatile.acidity), data = wd) +
 
 Taking a look at fixed acidity vs volatile acidity, we do see that wines with
 more volatile acidity tend to fall lower on the fixed acidity scale. This
-probably explains a large portion of the unexpected pH trend.
+probably explains a large portion of the unexpected pH trend. Another thing 
+we can take a look at is the relationship between sulphates and sulfur dioxide.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, so2_sulphite}
+ggplot(aes(x = sulphates), data = wd) +
+  geom_point(alpha = 0.2, aes(y = free.sulfur.dioxide)) +
+  geom_point(alpha = 0.2, aes(y = total.sulfur.dioxide), color = 'blue')
+
+cor.test(wd$total.sulfur.dioxide, wd$sulphates)
+cor.test(wd$free.sulfur.dioxide, wd$sulphates)
+```
+
+Though the data description suggests that sulphates can have a large impact
+on the amount of sulfur dioxide, the data suggests there is not much 
+correlation.
 
 # Bivariate Analysis
 
@@ -518,9 +532,146 @@ create here are justified by the plots you explored in the previous section. If
 you plan on creating any mathematical models, this is the section where you
 will do that.
 
-```{r echo=FALSE, Multivariate_Plots}
+One thing I want to investigate here is the idea of balance in the flavor of 
+wine. Balance is the amount of acidity which counters the sweetness of the wine,
+and it should be possible to look at the ratio of different types of acid and 
+residual sugar to see if there is an impact on the perceived quality.
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, balance_1}
+p9 <- ggplot(aes(x = fixed.acidity, 
+           y = residual.sugar, 
+           color = quality.bin), data = wd) +
+  geom_point(alpha = 0.5)
+
+p10 <- ggplot(aes(x = volatile.acidity, 
+           y = residual.sugar, 
+           color = quality.bin), data = wd) +
+  geom_point(alpha = 0.5)
+
+grid.arrange(p9, p10)
 ```
+
+Plotting the sugar and different types of acidity on a scatter plot with 
+different colors for quality bins, it doesn't seem clear initially that there
+is a relationship. Let's take a look at some box plots.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, balance_2}
+ggplot(aes(x = quality.bin, 
+           y = residual.sugar/fixed.acidity),
+       data = wd) +
+  geom_boxplot()
+```
+
+Looking at the box plots of fixed acidity vs quality, we see that there isn't
+much of a relationship. This means that the balance of these wines probably
+isn't very different for each quality. Let's take a look at the volatile
+acidity next.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, balance_3}
+ggplot(aes(x = quality.bin, 
+           y = residual.sugar/volatile.acidity),
+       data = wd) +
+  geom_boxplot()
+```
+
+Looking at the sugar/volatile acidity, there definitely seems to be a 
+relationship here. However, we know already that wines with lower volatile
+acidity tend to have higher quality. This could be the cause of the relationship
+we see here. We can calculate the correlation of these different variables with
+quality as a test.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, balance_stats}
+cor.test(wd$volatile.acidity, wd$quality)
+cor.test(wd$residual.sugar/wd$volatile.acidity, wd$quality)
+```
+
+Here we see that the lower volatile acidity is more strongly correlated with
+higher quality than increased sugar/volatile acid ratio. We can't say for sure
+which variable causes the effect but it is possible that the balance is not
+the primary cause and we are only seeing the impact of high volatile acidiy. In
+summary, it seems like we can't a significant correlation between the 'balance'
+of the wine and its quality rating.
+
+Next we will move on to analyzing the quality of the wine with respect to
+alcohol content, trying to see if any variables have a synnergystic effect.
+First, we look at citric acid and alcohol with the points colored by quality.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, alcohol_multi_1}
+ggplot(aes(x = alcohol, y = citric.acid, color=quality.bin), data = wd) +
+  geom_point(alpha = 1/2)
+```
+
+Looking closely at this plot, we can see that many of the high quality wines
+seem to have both higher alcohol and higher citric acid. Also, many of the lower
+quality wines cluster in the bottom left, so the lower of both quantities also
+isn't beneficiial for wine quality.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, alcohol_multi_2}
+ggplot(aes(x = 0.75 * round(alcohol / 0.75), 
+           y = citric.acid, 
+           color=quality.bin), 
+       data = wd) +
+  geom_jitter(alpha = 1/2) +
+  scale_x_continuous(limits = c(8.5, 14)) +
+  geom_line(stat = 'summary', fun.y = mean)
+```
+
+Taking a look at a slightly more complex version of the plot, we can see the
+variation for different bins of wine quality. It definitely seems like the
+higher citric acid is beneficial, as well as the higher alcohol.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, alcohol_multi_3}
+ggplot(aes(x = alcohol, y = sulphates, color=quality.bin), data = wd) +
+  geom_point(alpha = 1/2) +
+  scale_y_continuous(limits = c(NA, 1.25)) +
+  scale_x_continuous(limits = c(8.5, 14)) +
+  geom_smooth()
+```
+
+We see a similar relationship when we look at sulphates, alcohol, and quality.
+This is not surprising since alcohol and sulphates are not correlated, but they
+do correlate with higher quality ratings.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, alcohol_multi_4}
+ggplot(aes(x = alcohol, 
+           y = total.sulfur.dioxide, 
+           color=quality.bin), 
+       data = wd) +
+  geom_point(alpha = 1/2)
+```
+
+Taking a look at the total sulfur dioxide, alcohol, and quality. We expect to
+see a threshold above which the wine quality starts to suffer, however this does
+not seem to be the case. Alcohol content is a much stronger predictor than 
+sulfur dioxide content.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, alcohol_multi_5}
+ggplot(aes(x = alcohol, 
+           y = free.sulfur.dioxide, 
+           color=quality.bin), 
+       data = wd) +
+  geom_point(alpha = 1/2)
+```
+
+Though the data documentation suggests that wines over 50ppm free sulfur dioxide
+will siffer, that doesn't seem to be the case here (although there aren't many
+samples with SO2 free > 50ppm). 
+
+Next, we will take a look at the density relationship again to see if we can
+explain it further. We had previously seen that there was a close relationship
+with alcohol content and density. We can add the acidity into that relationship.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, denisty_multi}
+ggplot(aes(x = alcohol, 
+           y = density, 
+           color=fixed.acidity), 
+       data = wd) +
+  geom_jitter(alpha = 0.5) +
+  scale_color_gradient(low = 'white', high = 'black')
+```
+
+Looking at this plot, the fixed acidity explains a large part of the additional
+variation in density!
 
 # Multivariate Analysis
 
@@ -529,9 +680,6 @@ investigation. Were there features that strengthened each other in terms of \
 looking at your feature(s) of interest?
 
 ### Were there any interesting or surprising interactions between features?
-
-### OPTIONAL: Did you create any models with your dataset? Discuss the \
-strengths and limitations of your model.
 
 ------
 
@@ -546,24 +694,36 @@ units), and good aesthetic choices (e.g. color, transparency). After each plot,
 make sure you justify why you chose each plot by describing what it shows.
 
 ### Plot One
-```{r echo=FALSE, Plot_One}
-
+```{r echo=FALSE, message=FALSE, warning=FALSE, Quality_hist}
+ggplot(aes(quality), data = wd) + 
+  geom_histogram(binwidth = 1) +
+  scale_x_continuous(breaks = seq(2,10, 1))
 ```
+
 
 ### Description One
 
 
 ### Plot Two
 ```{r echo=FALSE, Plot_Two}
-
+ggplot(aes(x = alcohol,
+           y = quality,
+           color = quality.bin),
+       data = wd) +
+  geom_jitter()
 ```
 
 ### Description Two
 
 
 ### Plot Three
-```{r echo=FALSE, Plot_Three}
-
+```{r echo=FALSE, message=FALSE, warning=FALSE, Plot_3}
+ggplot(aes(x = alcohol, 
+           y = density, 
+           color=fixed.acidity), 
+       data = wd) +
+  geom_jitter(alpha = 0.5) +
+  scale_color_gradient(low = 'white', high = 'black')
 ```
 
 ### Description Three
