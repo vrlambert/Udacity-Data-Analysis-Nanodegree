@@ -22,8 +22,8 @@ library(GGally)
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Load_the_Data}
 # Load the Data
 wd = read.csv("wineQualityReds.csv")
-# Update the X column to a factor
-wd$X <- factor(wd$X)
+# Remove the row number column, it isn't very useful
+wd$X <- NULL
 ```
 
 This dataset contains 1599 records of red wine chemical composition and quality
@@ -81,6 +81,8 @@ significance for those areas. We create four bins for wine quality:
 These bins can be used to split other variables and see if there are patterns.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Quality_Bins}
+# Cut the quality into four bins for easier use in multi-variable analysis
+# Creates four bins
 wd$quality.bin  <- cut(wd$quality, c(2, 4, 5, 6, 8))
 print("Quality Bins Table")
 table(wd$quality.bin)
@@ -120,7 +122,7 @@ like a normal distribution. We will look at the log of the citric acid content.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Citric_acid_log}
 ggplot(aes(citric.acid), data = wd) +
-  geom_histogram(bins = 50) + 
+  geom_histogram() + 
   scale_x_log10()
 ```
 
@@ -321,9 +323,10 @@ relationships that we should investigate later. The plot shows correlations
 on the upper half, frequency polygons on the diagonal, and scatter plots on the 
 lower diagonal.
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, ggpairs_plot}
-ggpairs(wd, columns = seq(2, 13), lower = list(continuous = 'smooth')) +
-  theme_grey(base_size = 4)
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=10, fig.height=10, ggpairs_plot}
+
+ggpairs(subset(wd, select = -c(quality.bin, proportion.sulfur.dioxide)),
+        lower = list(continuous = 'smooth'))
 ```
 
 Looking at the ggpairs, we can see some expected relationships and some 
@@ -413,23 +416,37 @@ quality rating of the wine. Let's move on toconfirm some relationships that we
 don't expect to have an effect.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, sugar_scatter}
-ggplot(aes(x = residual.sugar, y = quality), data = wd) +
+no_sugar_outliers = subset(wd, residual.sugar < 4)
+ggplot(aes(x = residual.sugar, y = quality), data = no_sugar_outliers) +
   geom_jitter(alpha = 1/5) +
   geom_smooth(color = 'black', method = 'lm')
+cor.test(wd$residual.sugar, wd$quality)
 ```
 
 As we expected from the univariate analysis, sugar content doesn't seem to have
-any impact at all on the quality of the wine. Now we can take a look at 
-relationships between some other variables.
+any impact at all on the quality of the wine. The calculated correlation is low,
+0.014. Now we can take a look at relationships between some other variables.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, density_sugar}
 ggplot(aes(x = residual.sugar, y = density), data = wd) +
+  geom_jitter(alpha = 1/5)
+```
+
+We can see that the density has a positive correlation with sugar, as we would 
+expect. It seems that there are many outliers, so let's take a look at the area
+of the plot with most of the data.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, density_sugar_zoom}
+
+ggplot(aes(x = residual.sugar, y = density), 
+       data = no_sugar_outliers) +
   geom_jitter(alpha = 1/5) +
   geom_smooth(color = 'black', method = 'lm')
 ```
 
-We can see that the density has a positive correlation with sugar, as we would 
-expect. However, this doesn't explain all the variation.
+We can see that the trend is similar, however the sugar content doesn't explain
+all the variation in density. For future analysis involving sugar we will
+eliminate the outliers in a similar procedure.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, density_alcohol}
 ggplot(aes(x = alcohol, y = density), data = wd) +
@@ -471,9 +488,13 @@ probably explains a large portion of the unexpected pH trend. Another thing
 we can take a look at is the relationship between sulphates and sulfur dioxide.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, so2_sulphite}
-ggplot(aes(x = sulphates), data = wd) +
-  geom_point(alpha = 0.2, aes(y = free.sulfur.dioxide)) +
-  geom_point(alpha = 0.2, aes(y = total.sulfur.dioxide), color = 'blue')
+p11 <- ggplot(aes(x = sulphates, y = free.sulfur.dioxide), data = wd) +
+  geom_point(alpha = 0.2)
+
+p12 <- ggplot(aes(x = sulphates, y = total.sulfur.dioxide), data = wd) +
+  geom_point(alpha = 0.2)
+
+grid.arrange(p11, p12, ncol = 2)
 
 cor.test(wd$total.sulfur.dioxide, wd$sulphates)
 cor.test(wd$free.sulfur.dioxide, wd$sulphates)
@@ -541,12 +562,16 @@ residual sugar to see if there is an impact on the perceived quality.
 p9 <- ggplot(aes(x = fixed.acidity, 
            y = residual.sugar, 
            color = quality.bin), data = wd) +
-  geom_point(alpha = 0.5)
+  geom_point(alpha = 0.5) +
+  scale_color_brewer() +
+  theme_dark()
 
 p10 <- ggplot(aes(x = volatile.acidity, 
            y = residual.sugar, 
            color = quality.bin), data = wd) +
-  geom_point(alpha = 0.5)
+  geom_point(alpha = 0.5) +
+  scale_color_brewer() +
+  theme_dark()
 
 grid.arrange(p9, p10)
 ```
@@ -558,7 +583,7 @@ is a relationship. Let's take a look at some box plots.
 ```{r echo=FALSE, message=FALSE, warning=FALSE, balance_2}
 ggplot(aes(x = quality.bin, 
            y = residual.sugar/fixed.acidity),
-       data = wd) +
+       data = no_sugar_outliers) +
   geom_boxplot()
 ```
 
@@ -570,7 +595,7 @@ acidity next.
 ```{r echo=FALSE, message=FALSE, warning=FALSE, balance_3}
 ggplot(aes(x = quality.bin, 
            y = residual.sugar/volatile.acidity),
-       data = wd) +
+       data = no_sugar_outliers) +
   geom_boxplot()
 ```
 
@@ -598,7 +623,9 @@ First, we look at citric acid and alcohol with the points colored by quality.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, alcohol_multi_1}
 ggplot(aes(x = alcohol, y = citric.acid, color=quality.bin), data = wd) +
-  geom_point(alpha = 1/2)
+  geom_point(alpha = 1/2) +
+  scale_color_brewer() +
+  theme_dark()
 ```
 
 Looking closely at this plot, we can see that many of the high quality wines
@@ -613,7 +640,9 @@ ggplot(aes(x = 0.75 * round(alcohol / 0.75),
        data = wd) +
   geom_jitter(alpha = 1/2) +
   scale_x_continuous(limits = c(8.5, 14)) +
-  geom_line(stat = 'summary', fun.y = mean)
+  geom_line(stat = 'summary', fun.y = mean) +
+  scale_color_brewer() +
+  theme_dark()
 ```
 
 Taking a look at a slightly more complex version of the plot, we can see the
@@ -625,7 +654,9 @@ ggplot(aes(x = alcohol, y = sulphates, color=quality.bin), data = wd) +
   geom_point(alpha = 1/2) +
   scale_y_continuous(limits = c(NA, 1.25)) +
   scale_x_continuous(limits = c(8.5, 14)) +
-  geom_smooth()
+  geom_smooth(se = FALSE) +
+  scale_color_brewer() +
+  theme_dark()
 ```
 
 We see a similar relationship when we look at sulphates, alcohol, and quality.
@@ -637,7 +668,9 @@ ggplot(aes(x = alcohol,
            y = total.sulfur.dioxide, 
            color=quality.bin), 
        data = wd) +
-  geom_point(alpha = 1/2)
+  geom_point(alpha = 1/2) +
+  scale_color_brewer() +
+  theme_dark()
 ```
 
 Taking a look at the total sulfur dioxide, alcohol, and quality. We expect to
@@ -650,7 +683,9 @@ ggplot(aes(x = alcohol,
            y = free.sulfur.dioxide, 
            color=quality.bin), 
        data = wd) +
-  geom_point(alpha = 1/2)
+  geom_point(alpha = 1/2)+
+  scale_color_brewer() +
+  theme_dark()
 ```
 
 Though the data documentation suggests that wines over 50ppm free sulfur dioxide
@@ -732,7 +767,9 @@ ggplot(aes(x = alcohol,
   labs(x = 'Alcohol [%]',
        y = 'Quality',
        color = 'Quality Bin',
-       title = 'Alcohol vs. Quality') 
+       title = 'Alcohol vs. Quality') +
+  theme_dark() +
+  scale_color_brewer(palette = "Reds")
 ```
 
 ### Description Two
@@ -752,11 +789,11 @@ ggplot(aes(x = alcohol,
            color=fixed.acidity), 
        data = wd) +
   geom_jitter(alpha = 0.5) +
-  scale_color_gradient(low = 'white', high = 'black') +
+  scale_color_gradient(high = 'dark blue', low = 'grey') +
   labs(x = 'Alcohol [%]',
      y = 'Density [g*cm^-3]',
      color = 'Fixed Acidity [g / L]',
-     title = "Density vs. Alcohol and Acidity") 
+     title = "Density vs. Alcohol and Acidity")
 ```
 
 ### Description Three
