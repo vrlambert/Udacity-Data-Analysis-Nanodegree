@@ -546,13 +546,6 @@ is the alcohol content, with a correlation of 0.48.
 
 # Multivariate Plots Section
 
-> **Tip**: Now it's time to put everything together. Based on what you found in
-the bivariate plots section, create a few multivariate plots to investigate
-more complex interactions between variables. Make sure that the plots that you
-create here are justified by the plots you explored in the previous section. If
-you plan on creating any mathematical models, this is the section where you
-will do that.
-
 One thing I want to investigate here is the idea of balance in the flavor of 
 wine. Balance is the amount of acidity which counters the sweetness of the wine,
 and it should be possible to look at the ratio of different types of acid and 
