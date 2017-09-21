@@ -43,29 +43,33 @@ feature_1 = "salary"
 feature_2 = "exercised_stock_options"
 feature_3 = "total_payments"
 poi  = "poi"
-features_list = [poi, feature_1, feature_2, feature_3]
+features_list = [poi, feature_1, feature_2]
 data = featureFormat(data_dict, features_list )
 poi, finance_features = targetFeatureSplit( data )
 
-print min(data_dict.values(), key = lambda x: x[feature_1])[feature_1]
-# print max(data_dict.values(), key = lambda x: x[feature_2])[feature_2]
-max_val = 0
-for person_dict in data_dict.values():
-    eso = person_dict[feature_1]
-    if eso > max_val and eso != 'NaN':
-        max_val = eso
-print max_val
+# print min(data_dict.values(), key = lambda x: x[feature_1])[feature_1]
+# # print max(data_dict.values(), key = lambda x: x[feature_2])[feature_2]
+# max_val = 0
+# for person_dict in data_dict.values():
+#     eso = person_dict[feature_1]
+#     if eso > max_val and eso != 'NaN':
+#         max_val = eso
+# print max_val
 ### in the "clustering with 3 features" part of the mini-project,
 ### you'll want to change this line to
 ### for f1, f2, _ in finance_features:
 ### (as it's currently written, the line below assumes 2 features)
-for f1, f2, _ in finance_features:
+for f1, f2 in finance_features:
     plt.scatter( f1, f2 )
 plt.show()
 
 ### cluster here; create predictions of the cluster labels
 ### for the data and store them to a list called pred
-
+from sklearn.preprocessing import MinMaxScaler
+scaler = MinMaxScaler()
+scaler.fit(finance_features)
+print scaler.transform(numpy.array([[2e5, 1e6]]))
+finance_features = scaler.transform(finance_features)
 from sklearn.cluster import KMeans
 kmeans = KMeans(n_clusters = 2).fit(finance_features)
 pred = kmeans.predict(finance_features)
