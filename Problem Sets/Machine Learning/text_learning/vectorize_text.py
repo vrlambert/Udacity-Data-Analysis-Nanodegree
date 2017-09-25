@@ -51,7 +51,8 @@ for name, from_person in [("sara", from_sara), ("chris", from_chris)]:
             words = parseOutText(email)
 
             ### use str.replace() to remove any instances of the words
-            for signature in ["sara", "shackleton", "chris", "germani"]:
+            for signature in ["sara", "shackleton", "chris", "germani",
+                                "sshacklensf", "cgermannsf"]:
                 words = words.replace(signature, '')
 
             ### append the text to word_data
@@ -71,17 +72,3 @@ from_chris.close()
 
 pickle.dump( word_data, open("your_word_data.pkl", "w") )
 pickle.dump( from_data, open("your_email_authors.pkl", "w") )
-
-
-
-
-
-### in Part 4, do TfIdf vectorization here
-from sklearn.feature_extraction.text import TfidfVectorizer
-
-vectorizer = TfidfVectorizer(stop_words = 'english', lowercase = True)
-vectorizer.fit(word_data)
-
-feature_names = vectorizer.get_feature_names()
-print len(feature_names)
-print feature_names[34597]
