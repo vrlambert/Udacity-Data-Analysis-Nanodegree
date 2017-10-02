@@ -2,10 +2,12 @@
 
 import sys
 import pickle
-sys.path.append("/tools/")
+sys.path.append("tools/")
 
 from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
+
+
 
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
@@ -50,6 +52,8 @@ features_train, features_test, labels_train, labels_test = \
 clf.fit(features_train, labels_train)
 
 pred = clf.predict(features_test)
+
+from sklearn import metrics
 print 'accuracy:', metrics.accuracy_score(labels_test, pred)
 print 'precision', metrics.precision_score(labels_test, pred)
 print 'recall', metrics.recall_score(labels_test, pred)
