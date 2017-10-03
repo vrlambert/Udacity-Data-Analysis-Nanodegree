@@ -12,7 +12,9 @@ from tester import dump_classifier_and_data
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
 ### The first feature must be "poi".
-features_list = ['poi', 'salary', 'bonus', 'total_poi_emails', 'exercised_stock_options'] # You will need to use more features
+features_list = ['poi', 'salary', 'bonus', 'total_poi_emails',
+                    'exercised_stock_options', 'total_stock_value',
+                    'long_term_incentive',  'loan_advances'] # You will need to use more features
 
 ### Load the dictionary containing the dataset
 with open("final_project_dataset.pkl", "r") as data_file:
@@ -49,7 +51,14 @@ labels, features = targetFeatureSplit(data)
 # clf = GaussianNB()
 
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.feature_selection import SelectKBest
+
 clf = DecisionTreeClassifier()
+feat_select = SelectKBest(k = 4)
+
+steps = [('feature', feat_select), ('clf', clf)]
+pipe = Pipeline(steps)
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall
 ### using our testing script. Check the tester.py script in the final project
@@ -63,9 +72,9 @@ from sklearn.cross_validation import train_test_split
 features_train, features_test, labels_train, labels_test = \
     train_test_split(features, labels, test_size=0.3, random_state=42)
 
-clf.fit(features_train, labels_train)
+pipe.fit(features_train, labels_train)
 
-pred = clf.predict(features_test)
+pred = pipe.predict(features_test)
 
 from sklearn import metrics
 print 'accuracy:', metrics.accuracy_score(labels_test, pred)
