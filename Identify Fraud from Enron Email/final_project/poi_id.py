@@ -12,17 +12,25 @@ from tester import dump_classifier_and_data
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
 ### The first feature must be "poi".
-features_list = ['poi','salary'] # You will need to use more features
+features_list = ['poi', 'salary', 'bonus', 'total_poi_emails'] # You will need to use more features
 
 ### Load the dictionary containing the dataset
 with open("final_project_dataset.pkl", "r") as data_file:
     data_dict = pickle.load(data_file)
 
 ### Task 2: Remove outliers
-
 data_dict.pop('TOTAL', 0)
 
 ### Task 3: Create new feature(s)
+
+for person in data_dict:
+    from_poi = data_dict[person]['from_poi_to_this_person']
+    to_poi = data_dict[person]['from_this_person_to_poi']
+    if from_poi == 'NaN' or to_poi == 'NaN':
+        data_dict[person]['total_poi_emails'] = 'NaN'
+    else:
+        data_dict[person]['total_poi_emails'] = from_poi + to_poi
+
 ### Store to my_dataset for easy export below.
 my_dataset = data_dict
 
@@ -37,8 +45,11 @@ labels, features = targetFeatureSplit(data)
 ### http://scikit-learn.org/stable/modules/pipeline.html
 
 # Provided to give you a starting point. Try a variety of classifiers.
-from sklearn.naive_bayes import GaussianNB
-clf = GaussianNB()
+# from sklearn.naive_bayes import GaussianNB
+# clf = GaussianNB()
+
+from sklearn.tree import DecisionTreeClassifier
+clf = DecisionTreeClassifier()
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall
 ### using our testing script. Check the tester.py script in the final project
