@@ -50,11 +50,14 @@ labels, features = targetFeatureSplit(data)
 # from sklearn.naive_bayes import GaussianNB
 # clf = GaussianNB()
 
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.feature_selection import SelectKBest
 
-clf = DecisionTreeClassifier()
+# from sklearn.svm import SVC
+# clf = SVC(C = 0.1)
+
+from sklearn.tree import DecisionTreeClassifier
+clf = DecisionTreeClassifier(min_samples_split = 5)
 feat_select = SelectKBest(k = 4)
 
 steps = [('feature', feat_select), ('clf', clf)]
