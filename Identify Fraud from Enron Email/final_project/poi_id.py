@@ -12,9 +12,9 @@ from tester import dump_classifier_and_data
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
 ### The first feature must be "poi".
-features_list = ['poi', 'salary', 'bonus', 'total_poi_emails',
-                    'exercised_stock_options', 'total_stock_value',
-                    'long_term_incentive',  'loan_advances'] # You will need to use more features
+features_list = ['poi', 'total_poi_emails',
+                    'salary', 'bonus', 'total_stock_value', 'expenses',
+                    'exercised_stock_options', 'long_term_incentive'] # You will need to use more features
 
 ### Load the dictionary containing the dataset
 with open("final_project_dataset.pkl", "r") as data_file:
@@ -47,21 +47,9 @@ labels, features = targetFeatureSplit(data)
 ### http://scikit-learn.org/stable/modules/pipeline.html
 
 # Provided to give you a starting point. Try a variety of classifiers.
-# from sklearn.naive_bayes import GaussianNB
-# clf = GaussianNB()
+from sklearn.naive_bayes import GaussianNB
+clf = GaussianNB()
 
-from sklearn.pipeline import Pipeline
-from sklearn.feature_selection import SelectKBest
-
-# from sklearn.svm import SVC
-# clf = SVC(C = 0.1)
-
-from sklearn.tree import DecisionTreeClassifier
-clf = DecisionTreeClassifier(min_samples_split = 5)
-feat_select = SelectKBest(k = 4)
-
-steps = [('feature', feat_select), ('clf', clf)]
-pipe = Pipeline(steps)
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall
 ### using our testing script. Check the tester.py script in the final project
