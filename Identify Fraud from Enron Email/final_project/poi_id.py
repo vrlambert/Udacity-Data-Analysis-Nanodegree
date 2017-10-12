@@ -48,9 +48,14 @@ labels, features = targetFeatureSplit(data)
 
 # Provided to give you a starting point. Try a variety of classifiers.
 from sklearn.naive_bayes import GaussianNB
-clf = GaussianNB()
+from sklearn.feature_selection import SelectKBest
+from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import KFold
+from sklearn.pipeline import Pipeline
 
-
+pipe = Pipeline([('kbest', SelectKBest()), ('NB', GaussianNB())])
+param_grid = {'kbest__k':[1, 2, 3, 5, 'all']}
+clf = GridSearchCV(pipe, param_grid = param_grid)
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall
 ### using our testing script. Check the tester.py script in the final project
 ### folder for details on the evaluation method, especially the test_classifier
@@ -63,9 +68,9 @@ from sklearn.cross_validation import train_test_split
 features_train, features_test, labels_train, labels_test = \
     train_test_split(features, labels, test_size=0.3, random_state=42)
 
-pipe.fit(features_train, labels_train)
+clf.fit(features_train, labels_train)
 
-pred = pipe.predict(features_test)
+pred = clf.predict(features_test)
 
 from sklearn import metrics
 print 'accuracy:', metrics.accuracy_score(labels_test, pred)
