@@ -77,8 +77,8 @@ pred = clf.predict(features_test)
 
 from sklearn import metrics
 print 'Accuracy:', metrics.accuracy_score(labels_test, pred)
-print 'Precision', metrics.precision_score(labels_test, pred)
-print 'Recall', metrics.recall_score(labels_test, pred)
+print 'Precision:', metrics.precision_score(labels_test, pred)
+print 'Recall:', metrics.recall_score(labels_test, pred)
 
 ### Task 6: Dump your classifier, dataset, and features_list so anyone can
 ### check your results. You do not need to change anything below, but make sure
