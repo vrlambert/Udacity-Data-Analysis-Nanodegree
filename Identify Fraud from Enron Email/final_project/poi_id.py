@@ -71,14 +71,14 @@ clf.fit(features_train, labels_train)
 print 'Feature Scores:'
 for score, feature in sorted(zip(clf.best_estimator_.named_steps.kbest.scores_,
                           features_list[1:]), reverse = True):
-    print feature, score
+    print round(score, 2), feature
 print '\n'
 pred = clf.predict(features_test)
 
 from sklearn import metrics
-print 'accuracy:', metrics.accuracy_score(labels_test, pred)
-print 'precision', metrics.precision_score(labels_test, pred)
-print 'recall', metrics.recall_score(labels_test, pred)
+print 'Accuracy:', metrics.accuracy_score(labels_test, pred)
+print 'Precision', metrics.precision_score(labels_test, pred)
+print 'Recall', metrics.recall_score(labels_test, pred)
 
 ### Task 6: Dump your classifier, dataset, and features_list so anyone can
 ### check your results. You do not need to change anything below, but make sure
