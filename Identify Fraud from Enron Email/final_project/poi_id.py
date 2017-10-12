@@ -7,13 +7,11 @@ sys.path.append("../tools/")
 from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
 
-
-
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
 ### The first feature must be "poi".
 features_list = ['poi', 'total_poi_emails',
-                    'salary', 'bonus', 'total_stock_value', 'expenses',
+                    'bonus', 'salary', 'total_stock_value', 'expenses',
                     'exercised_stock_options', 'long_term_incentive'] # You will need to use more features
 
 ### Load the dictionary containing the dataset
@@ -48,6 +46,7 @@ labels, features = targetFeatureSplit(data)
 
 # Provided to give you a starting point. Try a variety of classifiers.
 from sklearn.naive_bayes import GaussianNB
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.feature_selection import SelectKBest
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import KFold
@@ -55,7 +54,7 @@ from sklearn.pipeline import Pipeline
 
 pipe = Pipeline([('kbest', SelectKBest()), ('NB', GaussianNB())])
 param_grid = {'kbest__k':[1, 2, 3, 5, 'all']}
-clf = GridSearchCV(pipe, param_grid = param_grid)
+clf = GridSearchCV(pipe, param_grid = param_grid, scoring = 'f1')
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall
 ### using our testing script. Check the tester.py script in the final project
 ### folder for details on the evaluation method, especially the test_classifier
@@ -63,13 +62,17 @@ clf = GridSearchCV(pipe, param_grid = param_grid)
 ### stratified shuffle split cross validation. For more info:
 ### http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.StratifiedShuffleSplit.html
 
-# Example starting point. Try investigating other evaluation techniques!
 from sklearn.cross_validation import train_test_split
 features_train, features_test, labels_train, labels_test = \
     train_test_split(features, labels, test_size=0.3, random_state=42)
 
 clf.fit(features_train, labels_train)
 
+print 'Feature Scores:'
+for score, feature in sorted(zip(clf.best_estimator_.named_steps.kbest.scores_,
+                          features_list[1:]), reverse = True):
+    print feature, score
+print '\n'
 pred = clf.predict(features_test)
 
 from sklearn import metrics
