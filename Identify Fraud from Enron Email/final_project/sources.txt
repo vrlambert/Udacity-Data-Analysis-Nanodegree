@@ -1,0 +1,2 @@
+http://scikit-learn.org/stable/auto_examples/plot_compare_reduction.html
+http://scikit-learn.org/stable/tutorial/statistical_inference/model_selection.html
