@@ -10,6 +10,7 @@ from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
 
 scale = True
+classifier_type = 'NB'
 
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
@@ -49,7 +50,7 @@ if scale is True:
     from sklearn.preprocessing import MinMaxScaler
     scaler = MinMaxScaler()
     data = scaler.fit_transform(data)
-    
+
 labels, features = targetFeatureSplit(data)
 
 ### Task 4: Try a varity of classifiers
@@ -59,15 +60,32 @@ labels, features = targetFeatureSplit(data)
 ### http://scikit-learn.org/stable/modules/pipeline.html
 
 # Provided to give you a starting point. Try a variety of classifiers.
-from sklearn.naive_bayes import GaussianNB
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.feature_selection import SelectKBest
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import KFold
 from sklearn.pipeline import Pipeline
 
-pipe = Pipeline([('kbest', SelectKBest()), ('NB', GaussianNB())])
-param_grid = {'kbest__k':[1, 3, 5, 8, 12, 'all']}
+if classifier_type == 'DT':
+    print 'Using Decision Tree'
+    from sklearn.tree import DecisionTreeClassifier
+    pipe = Pipeline([('kbest', SelectKBest()),
+                     ('DT', DecisionTreeClassifier())])
+    param_grid = {'kbest__k':[1, 3, 5, 8, 12, 'all'],
+                  'DT__min_samples_split':[2, 4, 6, 10]}
+elif classifier_type == 'SVM':
+    print 'Using SVM'
+    from sklearn.svm import SVC
+    pipe = Pipeline([('kbest', SelectKBest()), ('svc', SVC())])
+    param_grid = {'kbest__k':[1, 3, 5, 8, 12, 'all'],
+                  'svc__C':[.01, .1, 1, 10, 100]}
+elif classifier_type == 'NB':
+    print 'Using Naive Bayes'
+    from sklearn.naive_bayes import GaussianNB
+    pipe = Pipeline([('kbest', SelectKBest()), ('NB', GaussianNB())])
+    param_grid = {'kbest__k':[1, 3, 5, 8, 12, 'all']}
+else:
+    raise ValueError, 'Incorrect classifier specified'
+
 clf = GridSearchCV(pipe, param_grid = param_grid, scoring = 'f1')
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall
 ### using our testing script. Check the tester.py script in the final project
