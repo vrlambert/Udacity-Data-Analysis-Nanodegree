@@ -10,7 +10,7 @@ from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
 
 scale = True
-classifier_type = 'NB'
+classifier_type = 'DT'
 
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
@@ -21,7 +21,8 @@ features_list = ['poi', 'total_poi_emails',
                     'deferred_income', 'total_stock_value', 'expenses',
                     'exercised_stock_options', 'other', 'long_term_incentive',
                     'restricted_stock', 'director_fees', 'to_messages',
-                    'from_messages'] # You will need to use more features
+                     'from_poi_to_this_person', 'from_messages',
+                      'from_this_person_to_poi', 'shared_receipt_with_poi'] # You will need to use more features
 
 ### Load the dictionary containing the dataset
 with open("final_project_dataset.pkl", "r") as data_file:
