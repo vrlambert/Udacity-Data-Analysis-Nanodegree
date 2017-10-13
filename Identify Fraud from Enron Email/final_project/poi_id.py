@@ -66,24 +66,26 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import KFold
 from sklearn.pipeline import Pipeline
 
+k_feat_choices = [3, 5, 6, 8, 12, 'all']
+
 if classifier_type == 'DT':
     print 'Using Decision Tree'
     from sklearn.tree import DecisionTreeClassifier
     pipe = Pipeline([('kbest', SelectKBest()),
                      ('DT', DecisionTreeClassifier())])
-    param_grid = {'kbest__k':[1, 3, 5, 8, 12, 'all'],
-                  'DT__min_samples_split':[2, 4, 6, 10]}
+    param_grid = {'kbest__k':k_feat_choices,
+                  'DT__min_samples_split':[2, 3, 4, 5, 7, 10]}
 elif classifier_type == 'SVM':
     print 'Using SVM'
     from sklearn.svm import SVC
     pipe = Pipeline([('kbest', SelectKBest()), ('svc', SVC())])
-    param_grid = {'kbest__k':[1, 3, 5, 8, 12, 'all'],
+    param_grid = {'kbest__k':k_feat_choices,
                   'svc__C':[.01, .1, 1, 10, 100]}
 elif classifier_type == 'NB':
     print 'Using Naive Bayes'
     from sklearn.naive_bayes import GaussianNB
     pipe = Pipeline([('kbest', SelectKBest()), ('NB', GaussianNB())])
-    param_grid = {'kbest__k':[1, 3, 5, 8, 12, 'all']}
+    param_grid = {'kbest__k':k_feat_choices}
 else:
     raise ValueError, 'Incorrect classifier specified'
 
