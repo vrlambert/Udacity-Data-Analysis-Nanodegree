@@ -10,7 +10,7 @@ from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
 
 scale = True
-classifier_type = 'DT'
+classifier_type = 'NB'
 
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
