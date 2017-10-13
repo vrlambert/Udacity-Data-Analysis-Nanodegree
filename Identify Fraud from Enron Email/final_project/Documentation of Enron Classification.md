@@ -26,16 +26,11 @@ Outliers are also a concern in this financial data analysis. There is one import
 
 ### Feature Selection
 
-From the start, I knew the algorithm would require several financial features to classify correctly. Rather than manually searching each one for patterns, I decided to used automatic selection to choose a the most important features for classification, such as SelectKBest. I didn't input all the financial features, only those that I personally felt would correlate well with increased knowledge or participation in the fraud. The financial features I added for possible use are:
+From the start, I knew the algorithm would require several financial features to classify correctly. Rather than manually searching each one for patterns, I decided to use univariate selection to choose a the most important features for classification, specifically SelectKBest. I input all available financial features, the full list is:
 
-- 'salary'
-- 'bonus'
-- 'exercised_stock_options'
-- 'total_stock_value',
-- 'long_term_incentive'
-- 'expenses'
+['salary', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 'exercised_stock_options', 'other', 'long_term_incentive', 'restricted_stock', 'director_fees']
 
-In addition to using the financial features, I wanted to be able to use communication between people, particularly POIs to help determine their status. Rather than include both emails to POIs and emails from POIs I combined them both into one feature, 'total_poi_emails', which is the sum of the from_poi emails and the to_poi emails. The code I used to create this feature is shown below.
+In addition to using the financial features, I wanted to be able to use communication between people, particularly POIs, to help determine their status. Rather than include both emails to POIs and emails from POIs I combined them both into one feature, 'total_poi_emails', which is the sum of the from_poi emails and the to_poi emails. I hoped that the total would be a stronger predictor than one of the two alone. The code I used to create this feature is shown below.
 
 ```python
 for person in data_dict:
@@ -47,26 +42,53 @@ for person in data_dict:
         data_dict[person]['total_poi_emails'] = from_poi + to_poi
 ```
 
-Since I chose a naive Bayes classifier, feature scaling was not required. However, if I had chosen an algorithm where distance or margin is important, such as SVM, feature scaling would have been critical.
+In addition to the total emails feature, I input most of the other email features as well. I excluded the email address, which is a text string so is not relevant to the machine learning classification. The full list of used email features is:
 
-Using SelectKBest, the features are scored and only the top several features are used in the algorithm. The scores for the features used in this classifier are listed below, ranging from bonus (17.0) to long_term_incentive (0.5). Using a grid search to find the optimal number of features selected 5. The features selected therefore are bonus, total POI emails, expense, exercised stock options, and salary. Surprisingly, expenses was a higher predictor of being a POI than salary or stock options.
+['to_messages', 'total_poi_emails', 'from_poi_to_this_person', 'from_messages', 'from_this_person_to_poi', 'shared_receipt_with_poi']
+
+The three algorithms I chose to test were decision trees, naive Bayes, and SVM. Though decision trees and naive Bayes do not require feature scaling, it is critical for SVM in this case. Scaling is particularly important because the values for the email features are much lower than the values for bonuses and other financial features. I employed a min/max scaling which changes each feature to a range from 0-1. This allows for better comparison of email and financial features in the SVM.
+
+```python
+if scale is True:
+    print 'Using scaled dataset'
+    from sklearn.preprocessing import MinMaxScaler
+    scaler = MinMaxScaler()
+    data = scaler.fit_transform(data)
+```
+
+A quick note is that this code doesn't output the scaling to the pickled dataset. This would be an issue if the SVM was selected as the final algorithm, but I had much better performance with both decision trees and naive Bayes so this isn't an issue.
+
+Using SelectKBest, the features are scored and only the top several features are used in the algorithm. The scores for the features used in this classifier are listed below, ranging from bonus (30.65) to deferral_payments (0.01). During parameter tuning I used a grid search to select the ideal number of features for each algorithm. Bonus, salary, and stock value are the highest predictors of POI, and surprisingly shared_receipt_with_poi is also a very strong predictor. One interesting note is that emails from POI to a person are a much stronger predictor than emails to POI, and my combined feature falls about halfway between (although all three of these email features aren't very strong). The full list of feature importances is below.
 
 Feature Importances:
-1. bonus ............................... 17.0
-2. total_poi_emails ............... 10.6
-3. expenses ........................... 9.3
-4. exercised_stock_options ... 3.0
-5. salary ................................. 2.3
-6. total_stock_value ............... 2.1
-7. long_term_incentive .......... 0.5
+1. 30.65 bonus
+1. 15.81 salary
+1. 10.81 total_stock_value
+1. 10.67 shared_receipt_with_poi
+1. 9.96 exercised_stock_options
+1. 8.96 total_payments
+1. 8.49 deferred_income
+1. 8.05 restricted_stock
+1. 7.53 long_term_incentive
+1. 7.04 loan_advances
+1. 4.94 from_poi_to_this_person
+1. 4.31 expenses
+1. 3.2 other
+1. 2.64 total_poi_emails
+1. 2.61 to_messages
+1. 1.64 director_fees
+1. 0.68 restricted_stock_deferred
+1. 0.43 from_messages
+1. 0.11 from_this_person_to_poi
+1. 0.01 deferral_payments
 
 ### Algorithm Selection and Tuning
 
-During algorithm selection I tried naive Bayes, support vector machines, and decision trees using their respective scikit-learn implementations. For each algorithm, I tuned the key parameter before choosing a final algorithm. When tuning an algorithm, it is important to balance algorithm bias with overfitting to maximize the number of points that are correctly classified. There are several methods for tuning parameters, including manual systematic tuning or automated tuning with a function like GridSearchCV. Classification results depend heavily on the parameters and algorithm chosen.
+During algorithm selection I tried naive bayes, support vector machines, and decision trees using their respective scikit-learn implementations. When tuning an algorithm, it is important to balance algorithm bias with overfitting to maximize the number of points that are correctly classified. There are several methods for tuning parameters, including manual systematic tuning or automated tuning with a function like GridSearchCV. For each algorithm, I tuned the key parameters using GridSearchCV before choosing a final algorithm. Classification results depend heavily on the parameters and algorithm chosen. For all the algorithms, I allowed the grid search to select the ideal number of features, ranging from 3 to all of the given features.
 
-During initial tests, the SVM had trouble returning any positive values even with very high C values, although the accuracy was about 0.9. C values were tried between .01 and 1000, varying by factor of 10. The decision tree algorithm fared much better. Some of the parameter tunes of the minimum sample split and number of samples reached an accuracy of about 0.8, with precision and recall both just above 0.3. With the low number of samples, all the different algorithms ran quickly.
+During initial tests, the SVM had trouble returning any positive values for a large range of C values, although the accuracy was 0.86. Since there were no true positives returned, the precision and recall were both 0.0. C values were tried between .01 and 100, varying by factor of 10. The decision tree algorithm fared much better. The parameter tunes of the minimum sample split and number of features reached an accuracy of 0.84, with precision at 0.25 and recall at 0.20. For the decision tree, a the min_samples_split was varied from 2 to 10. With the low number of samples, all the different algorithms ran quickly.
 
-The most successful algorithm was naive Bayes. Although naive Bayes does not require any tuning, I still used SelectKBest to find the ideal number of features to use. The ideal number of features is 5, eliminating total stock value and long term incentive.
+The most successful algorithm was naive Bayes. Although naive Bayes does not require any tuning, I still used SelectKBest to find the ideal number of features to use. The ideal number of features is 6, selected the top 6 features from the list above. The local performance of the naive Bayes algorithm was good, with accuracy of 0.89, precision of 0.5, and recall of 0.6.
 
 ### Validation and Evaluation
 
@@ -77,11 +99,11 @@ In my naive Bayes algorithm I stuck with the standard train/test split. I consid
 Accuracy is the total percent of samples classified correctly. This is not always a good metric to use, especially in a dataset like the Enron corpus where there are many more non-POI than POI. Better metrics to report are the precision and recall. The precision is the number of true positives divided by the total number of positives. Higher precision means that the algorithm is less likely to report false positives, in other words the positives that are reported are more likely to be true. The recall is the number of true positives divided by the number of real samples (true positives plus false negatives). The recall represents the ability of the algorithm to find the persons if interest.
 
 When tested with the simple test/train split, the following performance is achieved:
-- Accuracy ......0.79
-- Precision ..... 0.33
-- Recall ............ 0.5
+- Accuracy ......0.89
+- Precision ..... 0.50
+- Recall .......... 0.60
 
 These values are decent. The tester script uses a more accurate stratified shuffle split. Stratified shuffle split splits the data so that the percentage of each class in each portion are similar in proportion to the overall data. The values reported by the tester script are:
-- Accuracy ...... 0.84650
-- Precision ...... 0.45184
-- Recall ........... 0.34950
+- Accuracy ...... 0.847
+- Precision ...... 0.403
+- Recall ........... 0.313
