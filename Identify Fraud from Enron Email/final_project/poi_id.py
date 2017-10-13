@@ -4,8 +4,12 @@ import sys
 import pickle
 sys.path.append("../tools/")
 
+import numpy as np
+
 from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
+
+scale = True
 
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
@@ -40,6 +44,12 @@ my_dataset = data_dict
 
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys = True)
+if scale is True:
+    print 'Using scaled dataset'
+    from sklearn.preprocessing import MinMaxScaler
+    scaler = MinMaxScaler()
+    data = scaler.fit_transform(data)
+    
 labels, features = targetFeatureSplit(data)
 
 ### Task 4: Try a varity of classifiers
