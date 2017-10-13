@@ -11,8 +11,12 @@ from tester import dump_classifier_and_data
 ### features_list is a list of strings, each of which is a feature name.
 ### The first feature must be "poi".
 features_list = ['poi', 'total_poi_emails',
-                    'bonus', 'salary', 'total_stock_value', 'expenses',
-                    'exercised_stock_options', 'long_term_incentive'] # You will need to use more features
+                    'salary', 'deferral_payments', 'total_payments',
+                    'loan_advances', 'bonus', 'restricted_stock_deferred',
+                    'deferred_income', 'total_stock_value', 'expenses',
+                    'exercised_stock_options', 'other', 'long_term_incentive',
+                    'restricted_stock', 'director_fees', 'to_messages',
+                    'from_messages'] # You will need to use more features
 
 ### Load the dictionary containing the dataset
 with open("final_project_dataset.pkl", "r") as data_file:
@@ -53,7 +57,7 @@ from sklearn.model_selection import KFold
 from sklearn.pipeline import Pipeline
 
 pipe = Pipeline([('kbest', SelectKBest()), ('NB', GaussianNB())])
-param_grid = {'kbest__k':[1, 2, 3, 5, 'all']}
+param_grid = {'kbest__k':[1, 3, 5, 8, 12, 'all']}
 clf = GridSearchCV(pipe, param_grid = param_grid, scoring = 'f1')
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall
 ### using our testing script. Check the tester.py script in the final project
